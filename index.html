@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>福家拳视频播放器</title>
+    <title>福家拳在线播放</title>
     <style>
         * {
             margin: 0;
@@ -429,7 +429,7 @@
 
     <div class="video-player-container" id="playerContainer">
         <div class="video-container" id="videoContainer">
-            <div class="loading-tip" id="loadingTip">视频加载中，请稍候...</div>
+            <div class="loading-tip" id="loadingTip">加载中...</div>
             
             <div class="big-play-button" id="bigPlayButton">
                 <div class="big-play-icon"></div>
@@ -438,13 +438,13 @@
             <video 
                 id="fujiaquan-video" 
                 preload="metadata"
-                poster="https://via.placeholder.com/600x1067?text=福家拳+竖屏封面"
+                poster="https://via.placeholder.com/600x1067?text=福家拳"
                 loop
                 playsinline
                 controlsList="nodownload"
             >
                 <source src="https://d.feiliupan.com/t/127891246667534336/fujiaquan.mp4" type="video/mp4">
-                您的浏览器不支持HTML5视频播放，请更换浏览器后重试。
+                请更换浏览器
             </video>
             
             <div class="custom-controls">
@@ -690,7 +690,7 @@
         });
         
         video.addEventListener('error', () => {
-            loadingTip.textContent = '视频加载失败，请检查网络或链接有效性';
+            loadingTip.textContent = '请检查网络';
             loadingTip.style.color = '#ff3e3e';
         });
         
@@ -757,7 +757,7 @@
             set: function(newSrc) {
                 const targetSrc = 'https://d.feiliupan.com/t/127891246667534336/fujiaquan.mp4';
                 if (newSrc !== targetSrc) {
-                    console.warn('禁止加载非指定视频，已自动恢复为福家拳视频');
+                    console.warn('已恢复');
                     Object.getOwnPropertyDescriptor(HTMLVideoElement.prototype, 'src').set.call(this, targetSrc);
                 } else {
                     Object.getOwnPropertyDescriptor(HTMLVideoElement.prototype, 'src').set.call(this, newSrc);
