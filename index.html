@@ -21,18 +21,16 @@
             transition: background 1.5s ease-in-out;
         }
 
-        /* 周一至周四的暗淡背景 - 加快渐变速度 */
         body.weekday {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             background-size: 400% 400%;
-            animation: gradientShift 10s ease infinite; /* 从20秒改为10秒 */
+            animation: gradientShift 10s ease infinite;
         }
 
-        /* 周五至周日的鲜明背景 - 加快渐变速度 */
         body.weekend {
             background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 50%, #ff8008 100%);
             background-size: 400% 400%;
-            animation: gradientShift 5s ease infinite; /* 从10秒改为5秒 */
+            animation: gradientShift 5s ease infinite;
         }
 
         @keyframes gradientShift {
@@ -88,9 +86,20 @@
                 0 2px 4px rgba(0, 0, 0, 0.3),
                 0 0 10px rgba(255, 255, 255, 0.8), 
                 0 0 20px rgba(255, 255, 255, 0.6);
+            -webkit-text-stroke: 1px transparent;
+            background-clip: text;
+            -webkit-background-clip: text;
+            background-image: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            background-size: 300% 100%;
+            animation: textStrokeShift 6s linear infinite;
             z-index: 2;
             position: relative;
             transition: all 1s ease;
+        }
+
+        @keyframes textStrokeShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
         }
 
         body.weekend .glow-text {
@@ -99,12 +108,12 @@
                 0 2px 6px rgba(0, 0, 0, 0.4),
                 0 0 20px rgba(255, 255, 255, 0.9), 
                 0 0 30px rgba(255, 255, 255, 0.7);
+            background-image: linear-gradient(90deg, #ff416c, #ff8008, #ff4b2b, #ff416c);
         }
 
-        /* 增大视频播放器尺寸 */
         .video-player-container {
-            width: 96vw; /* 从90vw增加到96vw */
-            max-width: 1200px; /* 从800px增加到1200px */
+            width: 96vw;
+            max-width: 1200px;
             position: relative;
             border-radius: 20px;
             overflow: hidden;
@@ -488,15 +497,12 @@
     </div>
 
     <script>
-        // 定义不同时间段的配置
         const configs = {
-            // 周一到周四 (1-4)
             default: {
                 videoUrl: "https://d.feiliupan.com/t/127891246667534336/fujiaquan.mp4",
                 title: "福皇最后一滴眼泪",
                 bodyClass: "weekday"
             },
-            // 周五到周日 (5-0)
             weekend: {
                 videoUrl: "https://d.feiliupan.com/t/127891246667534336/sjban.mp4",
                 title: "福皇最后一丝愤怒",
@@ -504,39 +510,31 @@
             }
         };
 
-        // 获取当前配置
         function getCurrentConfig() {
-            const day = new Date().getDay(); // 0是周日，1-6是周一到周六
-            // 周五(5)、周六(6)、周日(0)使用周末配置
+            const day = new Date().getDay();
             if (day === 5 || day === 6 || day === 0) {
                 return configs.weekend;
             }
             return configs.default;
         }
 
-        // 应用配置（切换视频、标题和背景）
         function applyConfig(config) {
             const video = document.getElementById('fujiaquan-video');
             const titleElement = document.querySelector('.glow-text');
             const body = document.body;
             
-            // 移除所有背景类
             body.classList.remove('weekday', 'weekend');
-            // 添加当前配置的背景类
             body.classList.add(config.bodyClass);
             
-            // 切换标题
             if (titleElement.textContent !== config.title) {
                 titleElement.textContent = config.title;
-                createTextParticles(); // 重新创建粒子效果
+                createTextParticles();
             }
             
-            // 切换视频源（如果不同）
             const source = video.querySelector('source');
             if (source.src !== config.videoUrl) {
-                const wasPlaying = !video.paused; // 记录播放状态
+                const wasPlaying = !video.paused;
                 
-                // 显示加载提示
                 const loadingTip = document.getElementById('loadingTip');
                 loadingTip.style.display = 'flex';
                 loadingTip.textContent = '加载中...';
@@ -545,11 +543,10 @@
                 source.src = config.videoUrl;
                 video.load();
                 
-                // 加载完成后恢复播放状态
                 video.addEventListener('canplay', () => {
                     loadingTip.style.display = 'none';
                     if (wasPlaying) {
-                        video.play().catch(err => console.log('自动播放失败:', err));
+                        video.play().catch(err => console.log('Auto play failed:', err));
                     }
                 }, { once: true });
             }
@@ -612,38 +609,69 @@
             const isTablet = /iPad|Android|Tablet/i.test(navigator.userAgent) && !/iPhone|iPod/i.test(navigator.userAgent);
             
             if (isMobile) {
-                playerContainer.style.maxWidth = '96vw'; // 增大移动设备上的播放器宽度
-                videoContainer.style.paddingTop = '177.78%'; // 9:16 比例
+                playerContainer.style.maxWidth = '96vw';
+                videoContainer.style.paddingTop = '177.78%';
             } else if (isTablet) {
-                playerContainer.style.maxWidth = '92vw'; // 增大平板设备上的播放器宽度
-                videoContainer.style.paddingTop = '133.33%'; // 3:4 比例
+                playerContainer.style.maxWidth = '90vw';
+                videoContainer.style.paddingTop = '56.25%';
             } else {
-                playerContainer.style.maxWidth = '1200px'; // 增大桌面设备上的最大宽度
-                videoContainer.style.paddingTop = '56.25%'; // 16:9 比例
+                playerContainer.style.maxWidth = '1200px';
+                videoContainer.style.paddingTop = '56.25%';
             }
-            
-            console.log(`设备类型: ${isMobile ? '移动设备' : isTablet ? '平板设备' : '桌面设备'}`);
         }
         
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            seconds = Math.floor(seconds % 60);
-            return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-        }
+        detectDeviceAndSetRatio();
+        window.addEventListener('resize', detectDeviceAndSetRatio);
+        
+        video.addEventListener('loadedmetadata', () => {
+            updateTimeDisplay();
+            loadingTip.style.display = 'none';
+        });
+        
+        video.addEventListener('timeupdate', () => {
+            updateProgress();
+            updateTimeDisplay();
+        });
+        
+        video.addEventListener('waiting', () => {
+            loadingTip.style.display = 'flex';
+            loadingTip.textContent = '缓冲中...';
+        });
+        
+        video.addEventListener('playing', () => {
+            loadingTip.style.display = 'none';
+        });
         
         function updateProgress() {
-            if (isNaN(video.duration)) return;
             const percent = (video.currentTime / video.duration) * 100;
             progressBar.style.width = `${percent}%`;
             progressHandle.style.left = `${percent}%`;
-            timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
         }
+        
+        function updateTimeDisplay() {
+            const currentTime = formatTime(video.currentTime);
+            const duration = formatTime(video.duration || 0);
+            timeDisplay.textContent = `${currentTime} / ${duration}`;
+        }
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' + secs : secs}`;
+        }
+        
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        bigPlayButton.addEventListener('click', togglePlayPause);
         
         function togglePlayPause() {
             if (video.paused || video.ended) {
-                video.play();
-                playPauseBtn.innerHTML = '<i class="pause-icon">❚❚</i>';
-                bigPlayButton.style.display = 'none';
+                video.play().then(() => {
+                    playPauseBtn.innerHTML = '<i class="pause-icon">⏸</i>';
+                    bigPlayButton.style.display = 'none';
+                }).catch(err => {
+                    console.log('Play failed:', err);
+                });
             } else {
                 video.pause();
                 playPauseBtn.innerHTML = '<i class="play-icon">▶</i>';
@@ -651,178 +679,135 @@
             }
         }
         
-        function toggleMute() {
-            video.muted = !video.muted;
-            updateVolumeUI();
+        progressContainer.addEventListener('click', scrub);
+        
+        function scrub(e) {
+            const scrubTime = (e.offsetX / progressContainer.offsetWidth) * video.duration;
+            video.currentTime = scrubTime;
         }
         
-        function updateVolumeUI() {
-            if (video.muted || video.volume === 0) {
+        volumeBtn.addEventListener('click', toggleMute);
+        
+        function toggleMute() {
+            video.muted = !video.muted;
+            if (video.muted) {
                 volumeBtn.innerHTML = '<i class="mute-icon">🔇</i>';
                 volumeSlider.value = 0;
             } else {
+                volumeBtn.innerHTML = '<i class="volume-icon">🔊</i>';
                 volumeSlider.value = video.volume;
-                if (video.volume < 0.5) {
-                    volumeBtn.innerHTML = '<i class="low-volume-icon">🔈</i>';
-                } else {
-                    volumeBtn.innerHTML = '<i class="volume-icon">🔊</i>';
+            }
+        }
+        
+        volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value;
+            video.muted = volumeSlider.value === 0;
+            
+            if (video.muted) {
+                volumeBtn.innerHTML = '<i class="mute-icon">🔇</i>';
+            } else {
+                volumeBtn.innerHTML = '<i class="volume-icon">🔊</i>';
+            }
+        });
+        
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                playerContainer.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+                fullscreenBtn.innerHTML = '<i class="exit-fullscreen-icon">⛶</i>';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenBtn.innerHTML = '<i class="fullscreen-icon">⛶</i>';
                 }
             }
         }
         
-        function setVolume() {
-            video.volume = volumeSlider.value;
-            video.muted = volumeSlider.value === 0;
-            updateVolumeUI();
-        }
-        
-        function seek(e) {
-            const rect = progressContainer.getBoundingClientRect();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const pos = (clientX - rect.left) / rect.width;
-            video.currentTime = pos * video.duration;
-        }
-        
-        function toggleFullscreen() {
-            const container = document.querySelector('.video-player-container');
+        document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => {
-                    console.log(`全屏切换错误: ${err.message}`);
-                });
-                fullscreenBtn.innerHTML = '<i class="exit-fullscreen-icon">⛵</i>';
-            } else {
-                document.exitFullscreen();
                 fullscreenBtn.innerHTML = '<i class="fullscreen-icon">⛶</i>';
             }
-        }
+        });
         
-        function showControlsOnTouch() {
+        playerContainer.addEventListener('touchstart', () => {
             playerContainer.classList.add('touch-active');
-            
-            clearTimeout(this.controlTimeout);
-            this.controlTimeout = setTimeout(() => {
-                if (!isDragging && !isVolumeDragging) {
+        });
+        
+        playerContainer.addEventListener('touchend', () => {
+            setTimeout(() => {
+                playerContainer.classList.remove('touch-active');
+            }, 3000);
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    togglePlayPause();
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    toggleFullscreen();
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    toggleMute();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    video.currentTime = Math.min(video.currentTime + 5, video.duration);
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    video.currentTime = Math.max(video.currentTime - 5, 0);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    video.volume = Math.min(video.volume + 0.1, 1);
+                    volumeSlider.value = video.volume;
+                    video.muted = false;
+                    volumeBtn.innerHTML = '<i class="volume-icon">🔊</i>';
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    video.volume = Math.max(video.volume - 0.1, 0);
+                    volumeSlider.value = video.volume;
+                    if (video.volume === 0) {
+                        video.muted = true;
+                        volumeBtn.innerHTML = '<i class="mute-icon">🔇</i>';
+                    } else {
+                        video.muted = false;
+                        volumeBtn.innerHTML = '<i class="volume-icon">🔊</i>';
+                    }
+                    break;
+            }
+        });
+        
+        let controlsTimeout;
+        function showControls() {
+            playerContainer.classList.add('touch-active');
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if (!video.paused) {
                     playerContainer.classList.remove('touch-active');
                 }
             }, 3000);
         }
         
-        let isDragging = false;
-        let isVolumeDragging = false;
+        video.addEventListener('mousemove', showControls);
+        video.addEventListener('touchmove', showControls);
+        video.addEventListener('play', showControls);
         
-        // 事件监听
-        playerContainer.addEventListener('touchstart', showControlsOnTouch);
-        playerContainer.addEventListener('touchend', () => {
-            if (!isDragging && !isVolumeDragging) {
-                setTimeout(() => {
-                    playerContainer.classList.remove('touch-active');
-                }, 3000);
-            }
-        });
-        
-        progressContainer.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            seek(e);
-            showControlsOnTouch();
-        });
-        
-        document.addEventListener('touchmove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                seek(e);
-            }
-        });
-        
-        document.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-        
-        volumeSlider.addEventListener('touchstart', () => {
-            isVolumeDragging = true;
-            showControlsOnTouch();
-        });
-        
-        volumeSlider.addEventListener('touchend', () => {
-            isVolumeDragging = false;
-        });
-        
-        video.addEventListener('canplay', () => {
-            loadingTip.style.display = 'none';
-            updateProgress();
-            updateVolumeUI();
-        });
-        
-        video.addEventListener('timeupdate', updateProgress);
-        
-        video.addEventListener('ended', () => {
-            playPauseBtn.innerHTML = '<i class="play-icon">▶</i>';
-            bigPlayButton.style.display = 'flex';
-        });
-        
-        video.addEventListener('error', () => {
-            loadingTip.textContent = '请检查网络';
-            loadingTip.style.color = '#ff3e3e';
-        });
-        
-        playPauseBtn.addEventListener('click', togglePlayPause);
-        bigPlayButton.addEventListener('click', togglePlayPause);
-        progressContainer.addEventListener('click', seek);
-        volumeBtn.addEventListener('click', toggleMute);
-        volumeSlider.addEventListener('input', setVolume);
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        
-        progressContainer.addEventListener('mousedown', () => {
-            isDragging = true;
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                seek(e);
-            }
-        });
-        
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                togglePlayPause();
-            }
-            if (e.code === 'ArrowRight') {
-                video.currentTime = Math.min(video.currentTime + 10, video.duration);
-            }
-            if (e.code === 'ArrowLeft') {
-                video.currentTime = Math.max(video.currentTime - 10, 0);
-            }
-            if (e.code === 'ArrowUp') {
-                video.volume = Math.min(video.volume + 0.1, 1);
-                setVolume();
-            }
-            if (e.code === 'ArrowDown') {
-                video.volume = Math.max(video.volume - 0.1, 0);
-                setVolume();
-            }
-            if (e.code === 'KeyF') {
-                toggleFullscreen();
-            }
-        });
-
-        // 初始化
-        detectDeviceAndSetRatio();
+        applyConfig(getCurrentConfig());
         createTextParticles();
-        applyConfig(getCurrentConfig()); // 应用初始配置
         
-        // 窗口大小变化时重新计算
-        window.addEventListener('resize', () => {
-            detectDeviceAndSetRatio();
-            createTextParticles();
-        });
-        
-        // 每小时检查一次配置，确保跨天自动切换
         setInterval(() => {
-            applyConfig(getCurrentConfig());
+            const currentConfig = getCurrentConfig();
+            applyConfig(currentConfig);
         }, 3600000);
     </script>
 </body>
