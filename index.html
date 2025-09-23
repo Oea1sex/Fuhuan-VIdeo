@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>福皇播放器2.0喵~</title>
+    <title>视频播放器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -12,6 +12,7 @@
                 extend: {
                     colors: {
                         primary: '#3B82F6',
+                        error: '#EF4444',
                     },
                 }
             }
@@ -24,6 +25,9 @@
             }
             .play-overlay {
                 @apply opacity-0 hover:opacity-100 transition-opacity duration-300;
+            }
+            .error-message {
+                @apply absolute inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col items-center justify-center p-2 text-center hidden;
             }
         }
     </style>
@@ -55,29 +59,105 @@
         </div>
     </div>
 
-    <!-- 用于捕获视频帧的隐藏视频元素 -->
-    <video id="frame-capturer" class="hidden" preload="metadata"></video>
-    <canvas id="frame-canvas" class="hidden"></canvas>
-
     <script>
-        // 视频数据
+        // 视频数据 - 按顺序设置了指定的封面URL
         const videos = [
-            { id: 1, title: "空悲切", url: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.mp4" },
-            { id: 2, title: "旧时的福家拳", url: "https://d.feiliupan.com/t/127891246667534336/Fujiaquan.mp4" },
-            { id: 3, title: "神经班", url: "https://d.feiliupan.com/t/127891246667534336/sjban.mp4" },
-            { id: 4, title: "妖娆", url: "https://d.feiliupan.com/t/127891246667534336/yaorao.mp4" },
-            { id: 5, title: "缘分本就稀薄寡淡 多是清尘浊水后会无期", url: "https://d.feiliupan.com/t/127891246667534336/yuanfen.mp4" },
-            { id: 6, title: "全场最佳", url: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.mp4" },
-            { id: 7, title: "期待本就是很无力的东西", url: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.mp4" },
-            { id: 8, title: "他还在", url: "https://d.feiliupan.com/t/127891246667534336/tahaizai.mp4" },
-            { id: 9, title: "最特别的老师", url: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.mp4" },
-            { id: 10, title: "他还是来了", url: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.mp4" },
-            { id: 11, title: "肚子越大的人跑步越快", url: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.mp4" },
-            { id: 12, title: "权威", url: "https://d.feiliupan.com/t/127891246667534336/quanwei.mp4" },
-            { id: 13, title: "福拳", url: "https://d.feiliupan.com/t/127891246667534336/fuquan.mp4" },
-            { id: 14, title: "我们都太年轻了，不知道福高肚大", url: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.mp4" },
-            { id: 15, title: "福哥对不起", url: "https://d.feiliupan.com/t/127891246667534336/fuge520.mp4" },
-            { id: 16, title: "戒了烟我不习惯，没有你我怎么办", url: "https://d.feiliupan.com/t/127891246667534336/jieyan.mp4" }
+            { 
+                id: 1, 
+                title: "空悲切", 
+                url: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.jpg"
+            },
+            { 
+                id: 2, 
+                title: "旧时的福家拳", 
+                url: "https://d.feiliupan.com/t/127891246667534336/Fujiaquan.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/fujiaquan.jpg"
+            },
+            { 
+                id: 3, 
+                title: "神经班", 
+                url: "https://d.feiliupan.com/t/127891246667534336/sjban.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/sjban.jpg"
+            },
+            { 
+                id: 4, 
+                title: "妖娆", 
+                url: "https://d.feiliupan.com/t/127891246667534336/yaorao.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/yaorao.jpg"
+            },
+            { 
+                id: 5, 
+                title: "缘分本就稀薄寡淡 多是清尘浊水后会无期", 
+                url: "https://d.feiliupan.com/t/127891246667534336/yuanfen.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/yuanfen.jpg"
+            },
+            { 
+                id: 6, 
+                title: "全场最佳", 
+                url: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.jpg"
+            },
+            { 
+                id: 7, 
+                title: "期待本就是很无力的东西", 
+                url: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.jpg"
+            },
+            { 
+                id: 8, 
+                title: "他还在", 
+                url: "https://d.feiliupan.com/t/127891246667534336/tahaizai.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/tahaizai.jpg"
+            },
+            { 
+                id: 9, 
+                title: "最特别的老师", 
+                url: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.jpg"
+            },
+            { 
+                id: 10, 
+                title: "他还是来了", 
+                url: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.jpg"
+            },
+            { 
+                id: 11, 
+                title: "肚子越大的人跑步越快", 
+                url: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.jpg"
+            },
+            { 
+                id: 12, 
+                title: "权威", 
+                url: "https://d.feiliupan.com/t/127891246667534336/quanwei.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/quanwei.jpg"
+            },
+            { 
+                id: 13, 
+                title: "福拳", 
+                url: "https://d.feiliupan.com/t/127891246667534336/fuquan.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/fuquan.jpg"
+            },
+            { 
+                id: 14, 
+                title: "我们都太年轻了，不知道福高肚大", 
+                url: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.jpg"
+            },
+            { 
+                id: 15, 
+                title: "福哥对不起", 
+                url: "https://d.feiliupan.com/t/127891246667534336/fuge520.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/fuge520.jpg"
+            },
+            { 
+                id: 16, 
+                title: "戒了烟我不习惯，没有你我怎么办", 
+                url: "https://d.feiliupan.com/t/127891246667534336/jieyan.mp4",
+                cover: "https://d.feiliupan.com/t/127891246667534336/jieyan.jpg"
+            }
         ];
 
         // DOM元素
@@ -87,10 +167,6 @@
         const modalTitle = document.getElementById('modal-title');
         const closeModal = document.getElementById('close-modal');
         const loadingIndicator = document.getElementById('loading-indicator');
-        const frameCapturer = document.getElementById('frame-capturer');
-        const frameCanvas = document.getElementById('frame-canvas');
-        const canvasCtx = frameCanvas.getContext('2d');
-        const FRAME_TO_CAPTURE = 0.5; // 捕获大约0.5秒位置的帧（约第3帧，假设25fps）
 
         // 生成视频卡片
         function createVideoCards() {
@@ -104,8 +180,14 @@
                         <div class="cover-loading absolute inset-0 flex items-center justify-center">
                             <div class="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
                         </div>
-                        <!-- 封面图将在这里动态设置 -->
-                        <img class="video-cover w-full h-full object-cover hidden" alt="${video.title}">
+                        <!-- 错误提示 -->
+                        <div class="error-message border-2 border-error">
+                            <i class="fa fa-exclamation-triangle text-error text-2xl mb-1"></i>
+                            <p class="text-error text-xs font-medium">封面加载失败</p>
+                            <p class="error-reason text-gray-600 text-xs mt-1"></p>
+                        </div>
+                        <!-- 封面图 -->
+                        <img class="video-cover w-full h-full object-cover" src="${video.cover}" alt="${video.title}">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center play-overlay">
                             <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
                                 <i class="fa fa-play text-white"></i>
@@ -117,70 +199,57 @@
                     </div>
                 `;
                 
+                // 获取相关元素
+                const coverImg = card.querySelector('.video-cover');
+                const loadingIndicator = card.querySelector('.cover-loading');
+                const errorMessage = card.querySelector('.error-message');
+                const errorReason = card.querySelector('.error-reason');
+                
+                // 图片加载成功处理
+                coverImg.addEventListener('load', () => {
+                    loadingIndicator.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                });
+                
+                // 图片加载失败处理
+                coverImg.addEventListener('error', (e) => {
+                    loadingIndicator.classList.add('hidden');
+                    
+                    // 确定错误原因
+                    let reason = "未知错误";
+                    if (e.target.error) {
+                        switch(e.target.error.code) {
+                            case e.target.error.NETWORK_ERROR:
+                                reason = "网络错误";
+                                break;
+                            case e.target.error.HTTP_ERROR:
+                                reason = "HTTP错误";
+                                break;
+                            case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                                reason = "资源不支持";
+                                break;
+                            default:
+                                reason = `错误代码: ${e.target.error.code}`;
+                        }
+                    } else if (e.type === 'error') {
+                        reason = "无法加载资源";
+                    }
+                    
+                    // 显示错误信息
+                    errorReason.textContent = `原因: ${reason}`;
+                    errorMessage.classList.remove('hidden');
+                    
+                    // 在控制台记录详细错误
+                    console.error(`封面加载失败 (${video.title}):`, video.cover, e);
+                });
+                
                 // 点击播放视频
                 card.addEventListener('click', () => {
                     openVideo(video);
                 });
                 
                 videoGrid.appendChild(card);
-                
-                // 捕获视频第3帧作为封面
-                captureVideoFrame(video.url, card.querySelector('.video-cover'), card.querySelector('.cover-loading'));
             });
-        }
-
-        // 捕获视频指定帧作为封面
-        function captureVideoFrame(videoUrl, coverImg, loadingIndicator) {
-            // 重置视频元素
-            frameCapturer.src = '';
-            frameCapturer.src = videoUrl;
-            
-            // 视频元数据加载完成后
-            frameCapturer.addEventListener('loadedmetadata', function onMetadataLoaded() {
-                // 快进到指定时间点（大约第3帧）
-                if (frameCapturer.duration > FRAME_TO_CAPTURE) {
-                    frameCapturer.currentTime = FRAME_TO_CAPTURE;
-                }
-                
-                // 当视频准备好显示当前帧时
-                frameCapturer.addEventListener('seeked', function onSeeked() {
-                    // 设置画布尺寸与视频一致
-                    frameCanvas.width = 400;
-                    frameCanvas.height = 225;
-                    
-                    // 绘制视频当前帧到画布
-                    canvasCtx.drawImage(frameCapturer, 0, 0, frameCanvas.width, frameCanvas.height);
-                    
-                    // 将画布内容转换为图片URL
-                    const frameUrl = frameCanvas.toDataURL('image/jpeg');
-                    
-                    // 设置为封面图
-                    coverImg.src = frameUrl;
-                    coverImg.classList.remove('hidden');
-                    
-                    // 隐藏加载指示器
-                    if (loadingIndicator) {
-                        loadingIndicator.classList.add('hidden');
-                    }
-                    
-                    // 清理事件监听器
-                    frameCapturer.removeEventListener('seeked', onSeeked);
-                }, { once: true });
-            }, { once: true });
-            
-            // 处理错误
-            frameCapturer.addEventListener('error', function onError() {
-                console.error('无法加载视频帧:', videoUrl);
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add('hidden');
-                }
-                // 出错时使用默认图片
-                coverImg.src = `https://picsum.photos/400/225?random=${Math.random()}`;
-                coverImg.classList.remove('hidden');
-            }, { once: true });
-            
-            // 加载视频
-            frameCapturer.load();
         }
 
         // 打开视频播放
