@@ -133,34 +133,6 @@
             .enter-screen {
                 @apply animate-slideIn;
             }
-            
-            /* 增强的动画效果 */
-            .fadeIn {
-                animation: fadeIn 0.5s ease-in-out;
-            }
-            
-            .scaleIn {
-                animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-            
-            .slideUp {
-                animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-            
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            
-            @keyframes scaleIn {
-                from { transform: scale(0.8); opacity: 0; }
-                to { transform: scale(1); opacity: 1; }
-            }
-            
-            @keyframes slideUp {
-                from { transform: translateY(30px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-            }
         }
     </style>
 </head>
@@ -180,8 +152,10 @@
         </div>
     </header>
 
+    <!-- 视频播放器 -->
     <div class="container mx-auto px-4 py-6">
         <div id="video-player-container" class="player-container hidden">
+            <!-- 视频头部控制区 -->
             <div class="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent text-white">
                 <h2 id="video-title" class="text-xl font-semibold truncate max-w-[70%] smooth-transition"></h2>
                 <button id="close-player" class="control-button w-10 h-10 rounded-full bg-black/30 backdrop-blur flex items-center justify-center hover:bg-black/50 transition-colors">
@@ -189,11 +163,14 @@
                 </button>
             </div>
             
+            <!-- 视频播放区 -->
             <div class="relative">
+                <!-- 自定义暂停按钮 -->
                 <button id="custom-pause-button" class="custom-pause-button">
                     <i class="fa fa-pause text-2xl"></i>
                 </button>
                 
+                <!-- 视频播放错误提示 -->
                 <div id="video-error" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white hidden opacity-0 transition-opacity duration-300">
                     <i class="fa fa-exclamation-circle text-error text-4xl mb-4 animate-pulse"></i>
                     <p class="text-xl font-medium mb-2">视频播放失败</p>
@@ -211,9 +188,11 @@
         </div>
     </div>
 
+    <!-- 视频列表 -->
     <div class="container mx-auto px-4 py-4">
         <div id="video-grid" class="grid gap-4"></div>
         
+        <!-- 全局加载状态指示器 -->
         <div id="global-loading" class="mt-8 text-center hidden animate-fadeIn">
             <p class="text-gray-600 dark:text-gray-400">
                 <span id="loading-text">正在加载封面图片</span> 
@@ -230,35 +209,34 @@
             elements: {},
             
             config: {
-                errorCoverUrl: "error.jpeg", // 使用本地error.jpeg文件
-                baseLoadDelay: 100, // 减少加载延迟以加快排序效果
-                variableLoadDelay: 50,
-                batchSize: 4, // 增加批量加载数量以提高效率
+                errorCoverUrl: "https://d.feiliupan.com/t/127891246667534336/ERROR.jpeg",
+                baseLoadDelay: 150,      // 基础加载间隔时间(ms)
+                variableLoadDelay: 100,   // 随机延迟范围(ms)
+                batchSize: 2,             // 每批加载的封面数量
                 videoLoadTimeout: 15000,
                 scrollDuration: 500,
                 touchAnimationDuration: 200,
-                visibleThreshold: 0.5
+                visibleThreshold: 0.5     // 元素可见比例阈值
             },
             
             state: {
-                // 使用本地文件路径
                 videos: [
-                    { id: 1, title: "空悲切", url: "MP4/konbeiqie.mp4", cover: "JPG/konbeiqie.jpg" },
-                    { id: 2, title: "旧时的福家拳", url: "MP4/fujiaquan.mp4", cover: "JPG/fujiaquan.jpg" },
-                    { id: 3, title: "福拳", url: "MP4/fuquan.mp4", cover: "JPG/fuquan.jpg" },
-                    { id: 4, title: "戒了烟我不习惯", url: "MP4/jieyan.mp4", cover: "JPG/jieyan.jpg" },
-                    { id: 5, title: "空悲切", url: "MP4/konbeiqie.mp4", cover: "JPG/konbeiqie.jpg" },
-                    { id: 6, title: "期待本就是很无力的东西", url: "MP4/qiedaiwuli.mp4", cover: "JPG/qiedaiwuli.jpg" },
-                    { id: 7, title: "全场最佳", url: "MP4/quanchangzuijia.mp4", cover: "JPG/quanchangzuijia.jpg" },
-                    { id: 8, title: "权威", url: "MP4/quanwei.mp4", cover: "JPG/quanwei.jpg" },
-                    { id: 9, title: "他还是来了", url: "MP4/tahaisilaile.mp4", cover: "JPG/tahaisilaile.jpg" },
-                    { id: 10, title: "他还在", url: "MP4/tahaizai.mp4", cover: "JPG/tahaizai.jpg" },
-                    { id: 11, title: "最特别的老师", url: "MP4/tebiedeDog.mp4", cover: "JPG/tebiedeDog.jpg" },
-                    { id: 12, title: "我们都太年轻了", url: "MP4/womendoutainianqinle.mp4", cover: "JPG/womendoutainianqinle.jpg" },
-                    { id: 13, title: "妖娆", url: "MP4/yaorao.mp4", cover: "JPG/yaorao.jpg" },
-                    { id: 14, title: "缘分", url: "MP4/yuanfen.mp4", cover: "JPG/yuanfen.jpg" },
-                    { id: 15, title: "肚子越大的人跑步越快", url: "MP4/dudapaokuai.mp4", cover: "JPG/dudapaokuai.jpg" },
-                    { id: 16, title: "福哥对不起", url: "MP4/fuge520.mp4", cover: "JPG/yuanfen.jpg" }
+                    { id: 1, title: "空悲切", url: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.jpg" },
+                    { id: 2, title: "旧时的福家拳", url: "https://d.feiliupan.com/t/127891246667534336/Fujiaquan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fujiaquan.jpg" },
+                    { id: 3, title: "神经班", url: "https://d.feiliupan.com/t/127891246667534336/sjban.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/sjban.jpg" },
+                    { id: 4, title: "妖娆", url: "https://d.feiliupan.com/t/127891246667534336/yaorao.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/yaorao.jpg" },
+                    { id: 5, title: "缘分本就稀薄寡淡", url: "https://d.feiliupan.com/t/127891246667534336/yuanfen.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/yuanfen.jpg" },
+                    { id: 6, title: "全场最佳", url: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.jpg" },
+                    { id: 7, title: "期待本就是很无力的东西", url: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.jpg" },
+                    { id: 8, title: "他还在", url: "https://d.feiliupan.com/t/127891246667534336/tahaizai.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tahaizai.jpg" },
+                    { id: 9, title: "最特别的老师", url: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.jpg" },
+                    { id: 10, title: "他还是来了", url: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.jpg" },
+                    { id: 11, title: "肚子越大的人跑步越快", url: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.jpg" },
+                    { id: 12, title: "权威", url: "https://d.feiliupan.com/t/127891246667534336/quanwei.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/quanwei.jpg" },
+                    { id: 13, title: "福拳", url: "https://d.feiliupan.com/t/127891246667534336/fuquan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fuquan.jpg" },
+                    { id: 14, title: "我们都太年轻了", url: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.jpg" },
+                    { id: 15, title: "福哥对不起", url: "https://d.feiliupan.com/t/127891246667534336/fuge520.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fuge520.jpg" },
+                    { id: 16, title: "戒了烟我不习惯", url: "https://d.feiliupan.com/t/127891246667534336/jieyan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/jieyan.jpg" }
                 ],
                 currentVideo: null,
                 allImages: [],
@@ -271,9 +249,7 @@
                 loadIntervalId: null,
                 lastScrollTop: 0,
                 scrollDirection: '',
-                observer: null,
-                loadedVideos: [], // 存储已加载完成的视频，按加载顺序排序
-                loadingVideos: []  // 存储正在加载的视频
+                observer: null
             },
             
             init() {
@@ -330,14 +306,7 @@
             },
             
             setupEventListeners() {
-                 this.elements.videoContainer.addEventListener('mouseenter', () => {
-                     this.state.isMouseOverVideo = true;
-                 });
-                 this.elements.videoContainer.addEventListener('mouseleave', () => {
-                     this.state.isMouseOverVideo = false;
-                 });
-                 
-                 // 视频卡片点击事件
+                // 视频卡片点击事件
                 this.elements.videoGrid.addEventListener('click', (e) => {
                     const card = e.target.closest('.video-card');
                     if (card) {
@@ -411,23 +380,19 @@
             
             // 设置滚动动画观察器
             setupScrollAnimationObserver() {
-                if ('IntersectionObserver' in window) {
+                if ('IntersectionObserver' in window && this.state.isMobile) {
                     this.state.observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
                             const card = entry.target;
                             
                             // 清除所有动画类
-                            card.classList.remove('enter-screen', 'exit-screen', 'card-enter-active');
+                            card.classList.remove('enter-screen', 'exit-screen');
                             
                             if (entry.isIntersecting) {
                                 // 元素进入视口
-                                if (this.state.isMobile) {
-                                    card.classList.add('enter-screen');
-                                } else {
-                                    card.classList.add('card-enter-active');
-                                }
-                            } else if (this.state.isMobile) {
-                                // 移动端元素离开视口，根据滚动方向添加不同动画
+                                card.classList.add('enter-screen');
+                            } else {
+                                // 元素离开视口，根据滚动方向添加不同动画
                                 if (this.state.scrollDirection === 'down' && entry.boundingClientRect.top < 0) {
                                     // 向上隐藏（缩小并上移）
                                     card.classList.add('exit-screen');
@@ -435,7 +400,7 @@
                             }
                         });
                     }, { 
-                        rootMargin: '0px 0px 0px 0px',
+                        rootMargin: '0px 0px -50% 0px',
                         threshold: this.config.visibleThreshold
                     });
                 }
@@ -520,8 +485,8 @@
             },
             
             isMouseOverVideo() {
-                 return this.state.isMouseOverVideo || this.elements.pauseButton.classList.contains('visible');
-              },
+                return this.elements.pauseButton.classList.contains('visible');
+            },
             
             scrollToTop() {
                 if (this.state.isScrolling) return;
@@ -553,6 +518,7 @@
                 return t < 1 ? c / 2 * t * t + b : -c / 2 * (--t * (t - 2) - 1) + b;
             },
             
+            // 增强版懒加载实现
             setupLazyLoading() {
                 if ('IntersectionObserver' in window && this.state.isMobile) {
                     const observer = new IntersectionObserver((entries) => {
@@ -572,17 +538,10 @@
                                     };
                                     
                                     img.onerror = () => {
-                                          loadingIndicator.classList.add('hidden');
-                                          img.onerror = function() {
-                                              this.style.backgroundColor = '#f3f4f6';
-                                              this.style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 24%22%3E%3Cpath fill%3D%22%239ca3af%22 d%3D%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E")';
-                                              this.style.backgroundSize = 'contain';
-                                              this.style.backgroundRepeat = 'no-repeat';
-                                              this.style.backgroundPosition = 'center';
-                                          };
-                                          img.src = this.config.errorCoverUrl;
-                                          img.parentElement.querySelector('.cover-error').classList.remove('hidden');
-                                      };
+                                        loadingIndicator.classList.add('hidden');
+                                        img.src = this.config.errorCoverUrl;
+                                        img.parentElement.querySelector('.cover-error').classList.remove('hidden');
+                                    };
                                     
                                     img.src = src;
                                     img.removeAttribute('data-src');
@@ -614,7 +573,7 @@
             
             determineLayout() {
                 const windowWidth = window.innerWidth;
-                if (this.state.isMobile) return { columns: 1, name: "1x" }; // 手机端始终1列
+                if (this.state.isMobile) return { columns: 1, name: "1x" };
                 if (windowWidth >= 1200) return { columns: 4, name: "4x" };
                 if (windowWidth >= 768) return { columns: 3, name: "3x" };
                 return { columns: 2, name: "2x" };
@@ -629,7 +588,7 @@
                 
                 // 移动端使用1列网格布局（1x16）
                 if (this.state.isMobile) {
-                    grid.classList.add('grid-1x', 'mobile-grid');
+                    grid.classList.add('mobile-grid');
                     this.adjustMobileCardStyles();
                     return;
                 }
@@ -642,16 +601,12 @@
             adjustMobileCardStyles() {
                 document.querySelectorAll('.video-card').forEach(card => {
                     card.classList.remove('p-2', 'p-3', 'p-4');
-                    card.classList.add('mobile-card', 'scaleIn');
+                    card.classList.add('mobile-card');
                     
                     const title = card.querySelector('h3');
-                    if (title) {
-                        title.classList.remove('text-lg');
-                        title.classList.add('text-base', 'font-semibold');
-                    }
+                    title?.classList.remove('text-lg');
+                    title?.classList.add('text-base', 'font-semibold');
                 });
-                
-                // 函数已正确结束
             },
             
             adjustCardStyles(columns) {
@@ -662,9 +617,7 @@
                 cards.forEach(card => {
                     card.classList.remove('p-2', 'p-3', 'p-4');
                     const title = card.querySelector('h3');
-                    if (title) {
-                        title.classList.remove('text-lg', 'text-sm', 'text-base', 'font-semibold');
-                    }
+                    title?.classList.remove('text-lg', 'text-sm', 'text-base', 'font-semibold');
                 });
                 
                 // 设置网格间距
@@ -706,22 +659,26 @@
                 this.state.failedImages = [];
                 this.state.currentLoadIndex = 0;
                 this.state.totalProcessed = 0;
-                this.state.loadedVideos = [];
-                this.state.loadingVideos = [];
                 
                 // 清空网格
                 this.elements.videoGrid.innerHTML = '';
+                
+                const fragment = document.createDocumentFragment();
                 
                 // 创建所有视频卡片
                 this.state.videos.forEach(video => {
                     const card = this.createVideoCard(video);
                     this.state.allImages.push(this.createImageInfo(card, video));
-                    // 不立即添加到DOM，而是在加载完成后按顺序添加
+                    fragment.appendChild(card);
                 });
+                
+                this.elements.videoGrid.appendChild(fragment);
                 
                 // 为移动设备设置滚动动画观察器
                 if (this.state.isMobile && this.state.observer) {
-                    // 暂时不观察，等卡片添加到DOM后再观察
+                    document.querySelectorAll('.video-card').forEach(card => {
+                        this.state.observer.observe(card);
+                    });
                 }
                 
                 // 更新加载状态显示
@@ -729,7 +686,14 @@
                 this.elements.globalLoading.classList.remove('hidden');
                 
                 // 开始分批、间隔加载封面
-                this.startBatchLoading();
+                if (!this.state.isMobile) {
+                    this.startBatchLoading();
+                } else {
+                    // 移动设备使用懒加载，直接隐藏全局加载
+                    setTimeout(() => {
+                        this.elements.globalLoading.classList.add('hidden');
+                    }, 500);
+                }
             },
             
             createVideoCard(video) {
@@ -749,10 +713,10 @@
                 }
                 coverImg.alt = video.title;
                 
-                // 加载指示器 - 移除旋转动画
+                // 加载指示器 - 添加旋转动画
                 const coverLoading = document.createElement('div');
                 coverLoading.className = 'cover-loading hidden';
-                coverLoading.innerHTML = '<i class="fa fa-circle-o-notch text-gray-400 dark:text-gray-600 text-xl"></i>';
+                coverLoading.innerHTML = '<i class="fa fa-circle-o-notch text-gray-400 dark:text-gray-600 text-xl animate-spin"></i>';
                 
                 // 错误提示
                 const coverError = document.createElement('div');
@@ -801,38 +765,51 @@
                         this.img.src = VideoPlayerApp.config.errorCoverUrl;
                         this.card.classList.remove('hidden');
                         setTimeout(() => this.card.classList.add('card-enter-active'), 50);
-                    },
+                    }
                 };
             },
             
+            setupScrollAnimation() {
+                if ('IntersectionObserver' in window && !this.state.isMobile) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('card-enter-active');
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.1 });
 
+                    document.querySelectorAll('.video-card').forEach(card => {
+                        observer.observe(card);
+                    });
+                }
+            },
             
+            // 批量、间隔加载封面图片
             startBatchLoading() {
+                // 计算当前批次的图片
                 const batchImages = this.state.allImages.slice(
                     this.state.currentLoadIndex, 
                     this.state.currentLoadIndex + this.config.batchSize
                 );
                 
+                // 加载当前批次的图片
                 batchImages.forEach(imgInfo => {
                     if (!imgInfo.img.src && imgInfo.video.cover) {
-                        // 记录正在加载的视频
-                        this.state.loadingVideos.push(imgInfo);
-                        
                         imgInfo.loading.classList.remove('hidden');
                         imgInfo.img.onload = () => this.handleImageLoad(imgInfo);
                         imgInfo.img.onerror = () => this.handleImageError(imgInfo);
                         imgInfo.img.src = imgInfo.video.cover;
-                        
-                        // 确保卡片已添加到DOM
-                        if (!imgInfo.card.parentNode) {
-                            this.elements.videoGrid.appendChild(imgInfo.card);
-                        }
                     }
                 });
                 
+                // 更新当前加载索引
                 this.state.currentLoadIndex += this.config.batchSize;
                 
+                // 如果还有图片需要加载，设置下一批的加载计时器
                 if (this.state.currentLoadIndex < this.state.allImages.length) {
+                    // 计算随机延迟，避免加载过于规律
                     const randomDelay = Math.floor(Math.random() * this.config.variableLoadDelay);
                     const totalDelay = this.config.baseLoadDelay + randomDelay;
                     
@@ -844,59 +821,12 @@
             },
             
             handleImageLoad(imgInfo) {
-                // 按加载完成顺序排序
-                this.state.loadedVideos.push(imgInfo);
-                this.updateVideoGridOrder();
-                
-                imgInfo.onLoad.call(imgInfo);
+                imgInfo.onLoad();
                 this.updateLoadingProgress(true);
             },
             
-            updateVideoGridOrder() {
-                // 清空网格但保留卡片引用
-                const fragment = document.createDocumentFragment();
-                
-                // 先添加已加载完成的视频
-                this.state.loadedVideos.forEach(imgInfo => {
-                    fragment.appendChild(imgInfo.card);
-                });
-                
-                // 再添加正在加载的视频（保持原来的顺序）
-                this.state.loadingVideos.forEach(imgInfo => {
-                    if (!fragment.contains(imgInfo.card)) {
-                        fragment.appendChild(imgInfo.card);
-                    }
-                });
-                
-                // 添加未开始加载的视频
-                const allLoaded = [...this.state.loadedVideos, ...this.state.loadingVideos];
-                this.state.allImages.forEach(imgInfo => {
-                    if (!allLoaded.includes(imgInfo)) {
-                        if (!imgInfo.card.parentNode) {
-                            // 确保卡片已创建但未添加到DOM
-                            fragment.appendChild(imgInfo.card);
-                        }
-                    }
-                });
-                
-                // 替换网格内容
-                this.elements.videoGrid.innerHTML = '';
-                this.elements.videoGrid.appendChild(fragment);
-                
-                // 为移动设备设置滚动动画观察器
-                if (this.state.isMobile && this.state.observer) {
-                    document.querySelectorAll('.video-card').forEach(card => {
-                        this.state.observer.observe(card);
-                    });
-                }
-            },
-            
             handleImageError(imgInfo) {
-                // 加载失败的视频也按顺序排列
-                this.state.loadedVideos.push(imgInfo);
-                this.updateVideoGridOrder();
-                
-                imgInfo.onError.call(imgInfo);
+                imgInfo.onError();
                 this.state.failedImages.push(imgInfo);
                 this.updateLoadingProgress(false);
             },
@@ -904,10 +834,12 @@
             updateLoadingProgress(success) {
                 this.state.totalProcessed++;
                 
+                // 更新进度显示
                 this.elements.loadingProgress.textContent = this.state.totalProcessed;
                 const progress = (this.state.totalProcessed / this.state.allImages.length) * 100;
                 this.elements.loadingBar.style.width = `${progress}%`;
                 
+                // 全部加载完成
                 if (this.state.totalProcessed === this.state.allImages.length) {
                     setTimeout(() => {
                         this.elements.globalLoading.classList.add('hidden');
@@ -930,8 +862,6 @@
                 
                 // 显示播放器
                 this.elements.videoContainer.classList.remove('hidden');
-                // 添加更丰富的动画效果
-                this.elements.videoContainer.classList.add('fadeIn', 'scaleIn');
                 this.scrollToTop();
                 
                 // 适配移动设备全屏样式
@@ -965,13 +895,10 @@
             
             closeVideoPlayer() {
                 this.elements.videoPlayer.pause();
-                  this.elements.videoPlayer.src = '';
-                  this.elements.videoPlayer.removeAttribute('src');
-                  this.elements.videoPlayer.load();
-                  this.elements.videoContainer.classList.add('hidden');
-                  this.state.currentVideo = null;
-                  this.elements.videoError.classList.add('hidden');
-                  this.state.isMouseOverVideo = false;
+                this.elements.videoPlayer.src = '';
+                this.elements.videoContainer.classList.add('hidden');
+                this.state.currentVideo = null;
+                this.elements.videoError.classList.add('hidden');
             },
             
             handleVideoError(error) {
@@ -979,15 +906,10 @@
                 this.elements.videoError.classList.remove('hidden');
                 this.elements.videoError.style.opacity = 1;
                 
+                // 设置错误消息
                 let message = '无法加载视频，请稍后重试';
                 if (error.type === 'timeout') {
                     message = '视频加载超时，请检查网络连接';
-                } else if (error.code === 1) {
-                    message = '用户中止了视频加载';
-                } else if (error.code === 2) {
-                    message = '网络错误，请检查您的网络连接';
-                } else if (error.code === 3) {
-                    message = '解码错误，视频文件可能已损坏';
                 } else if (error.code === 4) {
                     message = '视频格式不受支持';
                 }
@@ -1011,6 +933,7 @@
             },
             
             initializeTheme() {
+                // 检查用户偏好
                 if (localStorage.theme === 'dark' || 
                     (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                     document.documentElement.classList.add('dark');
@@ -1022,26 +945,16 @@
             },
             
             toggleTheme() {
-                 try {
-                     if (document.documentElement.classList.contains('dark')) {
-                         document.documentElement.classList.remove('dark');
-                         localStorage.theme = 'light';
-                         this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
-                     } else {
-                         document.documentElement.classList.add('dark');
-                         localStorage.theme = 'dark';
-                         this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
-                     }
-                 } catch (e) {
-                     if (document.documentElement.classList.contains('dark')) {
-                         document.documentElement.classList.remove('dark');
-                         this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
-                     } else {
-                         document.documentElement.classList.add('dark');
-                         this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
-                     }
-                 }
-              }
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.theme = 'light';
+                    this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.theme = 'dark';
+                    this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
+                }
+            }
         };
 
         // 初始化应用
