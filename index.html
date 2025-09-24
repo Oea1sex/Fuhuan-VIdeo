@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修复后的视频播放器</title>
+    <title>福皇播放器BETA</title>
     <script src="https://cdn.tailwindcss.com" async></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -33,6 +33,9 @@
             .error-message {
                 @apply absolute inset-0 bg-gray-100 dark:bg-gray-800 flex flex-col items-center justify-center p-2 text-center hidden;
             }
+            .cover-error {
+                @apply absolute inset-0 bg-gray-200 dark:bg-gray-700 flex flex-col items-center justify-center p-4 text-center hidden;
+            }
             .grid-4x4 {
                 @apply grid-cols-4;
             }
@@ -45,6 +48,15 @@
             .backdrop-blur {
                 backdrop-filter: blur(8px);
             }
+            .player-container {
+                @apply bg-black rounded-xl overflow-hidden mb-8 shadow-xl transition-all duration-300;
+            }
+            .card-enter {
+                @apply opacity-0 transform scale-95;
+            }
+            .card-enter-active {
+                @apply opacity-100 transform scale-100 transition-all duration-500;
+            }
         }
     </style>
 </head>
@@ -52,46 +64,48 @@
     <!-- 顶部重新加载按钮 -->
     <header class="sticky top-0 z-30 bg-white shadow-sm py-3 px-4">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-gray-800">视频播放器</h1>
-            <button id="top-retry-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors hidden">
+            <h1 class="text-xl font-bold text-gray-800">福皇播放器BETA</h1>
+            <button id="top-retry-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors">
                 <i class="fa fa-refresh mr-1"></i> 重新加载封面
             </button>
         </div>
     </header>
 
-    <!-- 视频播放器模态框 -->
-    <div id="video-modal" class="fixed inset-0 bg-black z-50 hidden flex-col">
-        <!-- 视频头部控制区 -->
-        <div class="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent text-white z-10">
-            <h2 id="modal-title" class="text-xl font-semibold truncate max-w-[70%]"></h2>
-            <button id="close-modal" class="w-10 h-10 rounded-full bg-black/30 backdrop-blur flex items-center justify-center hover:bg-black/50 transition-colors">
-                <i class="fa fa-times"></i>
-            </button>
-        </div>
-        
-        <!-- 视频播放区 -->
-        <div class="flex-1 relative">
-            <!-- 视频播放错误提示 -->
-            <div id="video-error" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white hidden z-20">
-                <i class="fa fa-exclamation-circle text-error text-4xl mb-4"></i>
-                <p class="text-xl font-medium mb-2">视频播放失败</p>
-                <p id="video-error-message" class="text-gray-300 mb-6 text-center px-4">无法加载视频，请稍后重试</p>
-                <button id="retry-video" class="px-6 py-2 bg-primary hover:bg-secondary rounded-lg transition-colors">
-                    <i class="fa fa-refresh mr-1"></i> 重试
+    <!-- 嵌入式视频播放器 -->
+    <div class="container mx-auto px-4 py-6">
+        <div id="video-player-container" class="player-container hidden">
+            <!-- 视频头部控制区 -->
+            <div class="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent text-white">
+                <h2 id="player-title" class="text-xl font-semibold truncate max-w-[70%]"></h2>
+                <button id="close-player" class="w-10 h-10 rounded-full bg-black/30 backdrop-blur flex items-center justify-center hover:bg-black/50 transition-colors">
+                    <i class="fa fa-times"></i>
                 </button>
             </div>
             
-            <video id="video-player" class="absolute inset-0 w-full h-full object-contain" controls>
-                您的浏览器不支持HTML5视频播放
-            </video>
-            <div id="loading-indicator" class="hidden absolute inset-0 flex items-center justify-center bg-black/30 z-10">
-                <div class="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            <!-- 视频播放区 -->
+            <div class="relative">
+                <!-- 视频播放错误提示 -->
+                <div id="video-error" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white hidden">
+                    <i class="fa fa-exclamation-circle text-error text-4xl mb-4"></i>
+                    <p class="text-xl font-medium mb-2">视频播放失败</p>
+                    <p id="video-error-message" class="text-gray-300 mb-6 text-center px-4">无法加载视频，请稍后重试</p>
+                    <button id="retry-video" class="px-6 py-2 bg-primary hover:bg-secondary rounded-lg transition-colors">
+                        <i class="fa fa-refresh mr-1"></i> 重试
+                    </button>
+                </div>
+                
+                <video id="video-player" class="w-full aspect-video object-contain" controls>
+                    您的浏览器不支持HTML5视频播放
+                </video>
+                <div id="loading-indicator" class="hidden absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div class="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 视频列表 -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-4">
         <div id="video-grid" class="grid gap-4">
             <!-- 视频卡片将通过JavaScript动态生成 -->
         </div>
@@ -111,10 +125,10 @@
         // 缓存DOM元素和类名常量
         const DOM = {
             videoGrid: document.getElementById('video-grid'),
-            videoModal: document.getElementById('video-modal'),
+            videoContainer: document.getElementById('video-player-container'),
             videoPlayer: document.getElementById('video-player'),
-            modalTitle: document.getElementById('modal-title'),
-            closeModal: document.getElementById('close-modal'),
+            playerTitle: document.getElementById('player-title'),
+            closePlayer: document.getElementById('close-player'),
             loadingIndicator: document.getElementById('loading-indicator'),
             globalLoading: document.getElementById('global-loading'),
             loadingProgress: document.getElementById('loading-progress'),
@@ -131,12 +145,18 @@
             hidden: 'hidden',
             videoCard: 'video-card-hover',
             coverLoading: 'cover-loading',
+            coverError: 'cover-error',
             errorMessage: 'error-message',
             errorReason: 'error-reason',
             grid4x4: 'grid-4x4',
             grid1x16: 'grid-1x16',
-            grid2x8: 'grid-2x8'
+            grid2x8: 'grid-2x8',
+            cardEnter: 'card-enter',
+            cardEnterActive: 'card-enter-active'
         };
+
+        // 错误封面图片URL
+        const ERROR_COVER_URL = "https://d.feiliupan.com/t/127891246667534336/ERROR.jpeg";
 
         // 视频数据
         const videos = [
@@ -164,11 +184,10 @@
         // 存储所有图片元素引用和加载状态
         let allImages = [];
         let failedImages = [];
+        let successfullyLoadedImages = [];
         let currentLoadIndex = 0;
-        let retryAttempts = 0;
-        const maxRetryAttempts = 2;
-        const loadDelay = 500;
-        const retryDelay = 3000;
+        let totalProcessed = 0;
+        const loadDelay = 300;
 
         // 根据屏幕比例确定布局
         function determineLayout() {
@@ -225,18 +244,21 @@
             }
         }
 
-        // 生成视频卡片
+        // 生成视频卡片 - 初始隐藏所有卡片
         function createVideoCards() {
             applyLayout();
             
             const fragment = document.createDocumentFragment();
             allImages = [];
             failedImages = [];
-            retryAttempts = 0;
+            successfullyLoadedImages = [];
+            currentLoadIndex = 0;
+            totalProcessed = 0;
             
             videos.forEach(video => {
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-xl overflow-hidden shadow-lg ${CLASS.videoCard} transform transition-all`;
+                // 初始状态隐藏，添加进入动画类
+                card.className = `bg-white rounded-xl overflow-hidden shadow-lg ${CLASS.videoCard} transform transition-all ${CLASS.hidden} ${CLASS.cardEnter}`;
                 card.dataset.videoId = video.id;
                 card.innerHTML = `
                     <div class="relative aspect-video bg-gray-100 overflow-hidden">
@@ -244,17 +266,17 @@
                         <div class="${CLASS.coverLoading} absolute inset-0 flex items-center justify-center">
                             <div class="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
                         </div>
-                        <!-- 错误提示 -->
-                        <div class="${CLASS.errorMessage} border-2 border-error">
-                            <i class="fa fa-exclamation-triangle text-error text-2xl mb-1"></i>
-                            <p class="text-error text-sm font-medium">封面加载失败</p>
-                            <p class="${CLASS.errorReason} text-gray-600 text-xs mt-1"></p>
-                        </div>
-                        <!-- 封面图 -->
-                        <img class="video-cover w-full h-full object-cover opacity-0 transition-opacity duration-500" 
+                        <!-- 封面图 - 初始使用错误封面 -->
+                        <img class="video-cover w-full h-full object-cover" 
                              data-src="${video.cover}" 
-                             src="" 
+                             src="${ERROR_COVER_URL}" 
                              alt="${video.title}">
+                        <!-- 封面错误提示 -->
+                        <div class="${CLASS.coverError}">
+                            <i class="fa fa-exclamation-triangle text-error text-2xl mb-2"></i>
+                            <p class="font-medium text-error">加载失败</p>
+                            <p class="text-sm text-gray-600 mt-1">错误: <span class="error-code">-</span></p>
+                        </div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <div class="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center transform hover:scale-110 transition-transform">
                                 <i class="fa fa-play text-white text-xl ml-1"></i>
@@ -268,18 +290,20 @@
                 
                 const coverImg = card.querySelector('.video-cover');
                 const loadingIndicator = card.querySelector(`.${CLASS.coverLoading}`);
-                const errorMessage = card.querySelector(`.${CLASS.errorMessage}`);
-                const errorReason = card.querySelector(`.${CLASS.errorReason}`);
+                const errorDisplay = card.querySelector(`.${CLASS.coverError}`);
+                const errorCodeDisplay = card.querySelector('.error-code');
                 
                 allImages.push({
+                    card: card,
                     img: coverImg,
                     loading: loadingIndicator,
-                    error: errorMessage,
-                    errorReason: errorReason,
+                    errorDisplay: errorDisplay,
+                    errorCodeDisplay: errorCodeDisplay,
                     src: video.cover,
                     title: video.title,
                     loaded: false,
-                    failed: false
+                    failed: false,
+                    errorCode: null
                 });
                 
                 fragment.appendChild(card);
@@ -293,416 +317,360 @@
             startSequentialLoading();
         }
 
+        // 显示卡片并触发动画
+        function showCard(card) {
+            // 移除隐藏类
+            card.classList.remove(CLASS.hidden);
+            // 触发重排
+            void card.offsetWidth;
+            // 添加激活动画类
+            card.classList.add(CLASS.cardEnterActive);
+            
+            // 动画结束后移除动画类
+            setTimeout(() => {
+                card.classList.remove(CLASS.cardEnter, CLASS.cardEnterActive);
+            }, 500);
+        }
+
+        // 批量显示失败的卡片
+        function showFailedCards() {
+            failedImages.forEach(imgInfo => {
+                showCard(imgInfo.card);
+            });
+        }
+
         // 开始有序加载图片
         function startSequentialLoading() {
             currentLoadIndex = 0;
             loadNextImage();
         }
 
-        // 加载下一张图片
+        // 获取HTTP错误状态码
+        function getHttpStatusCode(errorEvent) {
+            if (errorEvent && errorEvent.target && errorEvent.target.src) {
+                return new Promise((resolve) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('HEAD', errorEvent.target.src);
+                    xhr.referrerPolicy = "no-referrer-when-downgrade";
+                    
+                    xhr.onload = () => {
+                        resolve(xhr.status);
+                    };
+                    
+                    xhr.onerror = () => {
+                        resolve(null);
+                    };
+                    
+                    xhr.send();
+                });
+            }
+            return Promise.resolve(null);
+        }
+
+        // 加载下一张图片 - 成功则立即显示，失败则最后显示
         function loadNextImage() {
             if (currentLoadIndex >= allImages.length) {
-                // 所有图片加载完成
-                checkAndRetryFailedImages();
+                // 所有图片加载完成，显示失败的卡片
+                showFailedCards();
+                finishLoading();
                 return;
             }
             
             updateLoadingProgress();
             
             const imageInfo = allImages[currentLoadIndex];
-            const img = imageInfo.img;
             
-            img.removeEventListener('load', onImageLoad);
-            img.removeEventListener('error', onImageError);
+            // 创建临时图片对象用于预加载
+            const tempImg = new Image();
+            tempImg.referrerPolicy = "no-referrer-when-downgrade";
             
-            img.addEventListener('load', () => onImageLoad(imageInfo));
-            img.addEventListener('error', (e) => onImageError(e, imageInfo));
-            
-            img.src = imageInfo.src;
-        }
-
-        // 图片加载成功处理
-        function onImageLoad(imageInfo) {
-            imageInfo.loaded = true;
-            imageInfo.failed = false;
-            
-            // 从失败列表中移除
-            const index = failedImages.indexOf(imageInfo);
-            if (index > -1) {
-                failedImages.splice(index, 1);
-            }
-            
-            imageInfo.img.classList.remove('opacity-0');
-            imageInfo.loading.classList.add(CLASS.hidden);
-            imageInfo.error.classList.add(CLASS.hidden);
-            
-            currentLoadIndex++;
-            setTimeout(loadNextImage, loadDelay);
-        }
-
-        // 图片加载失败处理
-        function onImageError(event, imageInfo) {
-            console.error(`封面加载失败 (${imageInfo.title}):`, imageInfo.src, event);
-            
-            imageInfo.loaded = false;
-            imageInfo.failed = true;
-            
-            // 添加到失败列表
-            if (!failedImages.includes(imageInfo)) {
-                failedImages.push(imageInfo);
-            }
-            
-            imageInfo.loading.classList.add(CLASS.hidden);
-            
-            let reason = "未知错误";
-            if (event.target.error) {
-                switch(event.target.error.code) {
-                    case event.target.error.NETWORK_ERROR:
-                        reason = "网络错误";
-                        break;
-                    case event.target.error.HTTP_ERROR:
-                        reason = "HTTP错误";
-                        break;
-                    case event.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                        reason = "资源不支持";
-                        break;
-                    default:
-                        reason = `错误代码: ${event.target.error.code}`;
-                }
-            } else {
-                reason = "无法加载资源";
-            }
-            
-            imageInfo.errorReason.textContent = `原因: ${reason}`;
-            imageInfo.error.classList.remove(CLASS.hidden);
-            
-            currentLoadIndex++;
-            setTimeout(loadNextImage, loadDelay);
-        }
-
-        // 检查并自动重试失败的图片
-        function checkAndRetryFailedImages() {
-            // 更新顶部重试按钮状态
-            if (failedImages.length > 0) {
-                DOM.topRetryBtn.classList.remove(CLASS.hidden);
-            } else {
-                DOM.topRetryBtn.classList.add(CLASS.hidden);
-            }
-            
-            // 自动重试逻辑
-            if (failedImages.length > 0 && retryAttempts < maxRetryAttempts) {
-                retryAttempts++;
-                DOM.loadingText.textContent = `正在重新加载失败的封面 (第 ${retryAttempts}/${maxRetryAttempts} 次)`;
-                DOM.globalLoading.classList.remove(CLASS.hidden);
+            tempImg.addEventListener('load', () => {
+                // 预加载成功，更新实际图片
+                imageInfo.img.src = imageInfo.src;
+                imageInfo.loaded = true;
+                imageInfo.failed = false;
+                imageInfo.errorCode = null;
                 
-                // 延迟重试
-                setTimeout(() => {
-                    retryFailedImages();
-                }, retryDelay);
-            } else {
-                DOM.globalLoading.classList.add(CLASS.hidden);
-            }
+                // 隐藏加载指示器和错误显示
+                imageInfo.loading.classList.add(CLASS.hidden);
+                imageInfo.errorDisplay.classList.add(CLASS.hidden);
+                
+                // 添加到成功加载列表
+                successfullyLoadedImages.push(imageInfo);
+                
+                // 立即显示成功加载的卡片
+                showCard(imageInfo.card);
+                
+                currentLoadIndex++;
+                totalProcessed++;
+                setTimeout(loadNextImage, loadDelay);
+            });
+            
+            tempImg.addEventListener('error', async (e) => {
+                // 获取错误状态码
+                const statusCode = await getHttpStatusCode(e);
+                imageInfo.errorCode = statusCode || '未知';
+                
+                console.error(`封面加载失败 (${imageInfo.title}) 错误码: ${imageInfo.errorCode}`, imageInfo.src, e);
+                
+                imageInfo.loaded = false;
+                imageInfo.failed = true;
+                
+                // 更新错误显示
+                imageInfo.errorCodeDisplay.textContent = imageInfo.errorCode;
+                imageInfo.loading.classList.add(CLASS.hidden);
+                imageInfo.errorDisplay.classList.remove(CLASS.hidden);
+                
+                // 添加到失败列表，暂不显示
+                failedImages.push(imageInfo);
+                
+                currentLoadIndex++;
+                totalProcessed++;
+                setTimeout(loadNextImage, loadDelay);
+            });
+            
+            // 开始预加载
+            tempImg.src = imageInfo.src;
         }
 
-        // 重新加载失败的图片
-        function retryFailedImages() {
-            if (failedImages.length === 0) return;
+        // 完成加载流程
+        function finishLoading() {
+            // 隐藏全局加载指示器
+            DOM.globalLoading.classList.add(CLASS.hidden);
+        }
+
+        // 重新加载图片 - 智能判断加载内容
+        function reloadCovers() {
+            // 隐藏所有卡片
+            allImages.forEach(imgInfo => {
+                imgInfo.card.classList.add(CLASS.hidden, CLASS.cardEnter);
+                imgInfo.card.classList.remove(CLASS.cardEnterActive);
+            });
             
-            // 重置失败图片的状态
-            failedImages.forEach(imgInfo => {
+            // 重置状态
+            failedImages = [];
+            successfullyLoadedImages = [];
+            totalProcessed = 0;
+            
+            // 决定要重新加载的图片
+            let imagesToReload;
+            let loadingText;
+            
+            if (allImages.some(img => img.failed)) {
+                // 有错误的封面，只重新加载错误的
+                imagesToReload = allImages.filter(img => img.failed);
+                loadingText = `正在重新加载错误的封面 (${imagesToReload.length}个)`;
+            } else {
+                // 没有错误，重新加载所有封面
+                imagesToReload = [...allImages];
+                loadingText = "正在重新加载所有封面";
+            }
+            
+            // 重置要加载的图片状态
+            imagesToReload.forEach(imgInfo => {
                 imgInfo.loading.classList.remove(CLASS.hidden);
-                imgInfo.error.classList.add(CLASS.hidden);
+                imgInfo.errorDisplay.classList.add(CLASS.hidden);
+                imgInfo.loaded = false;
                 imgInfo.failed = false;
             });
             
-            // 保存当前失败列表并重置
-            const imagesToRetry = [...failedImages];
-            failedImages = [];
+            // 更新加载状态显示
+            DOM.loadingText.textContent = loadingText;
+            DOM.totalItems.textContent = imagesToReload.length;
+            DOM.globalLoading.classList.remove(CLASS.hidden);
             
             // 依次重新加载
-            let retryIndex = 0;
+            let reloadIndex = 0;
             
-            function retryNext() {
-                if (retryIndex >= imagesToRetry.length) {
-                    // 此次重试完成，检查是否需要继续重试
-                    loadNextImage();
+            function reloadNext() {
+                if (reloadIndex >= imagesToReload.length) {
+                    // 显示所有失败的卡片
+                    showFailedCards();
+                    finishLoading();
                     return;
                 }
                 
-                // 更新进度
-                const progress = ((retryIndex + 1) / imagesToRetry.length) * 100;
-                DOM.loadingBar.style.width = `${progress}%`;
-                DOM.loadingProgress.textContent = retryIndex + 1;
-                DOM.totalItems.textContent = imagesToRetry.length;
+                updateReloadProgress(reloadIndex, imagesToReload.length);
                 
-                const imgInfo = imagesToRetry[retryIndex];
-                const img = imgInfo.img;
+                const imgInfo = imagesToReload[reloadIndex];
                 
-                img.removeEventListener('load', onRetryLoad);
-                img.removeEventListener('error', onRetryError);
+                // 创建临时图片进行预加载
+                const tempImg = new Image();
+                tempImg.referrerPolicy = "no-referrer-when-downgrade";
                 
-                img.addEventListener('load', () => onRetryLoad(imgInfo));
-                img.addEventListener('error', (e) => onRetryError(e, imgInfo));
-                
-                // 添加随机参数避免缓存
-                const timestamp = new Date().getTime();
-                const srcWithCacheBust = imgInfo.src.includes('?') 
-                    ? `${imgInfo.src}&t=${timestamp}` 
-                    : `${imgInfo.src}?t=${timestamp}`;
-                
-                img.src = srcWithCacheBust;
-                
-                function onRetryLoad(info) {
-                    info.loaded = true;
-                    info.loading.classList.add(CLASS.hidden);
-                    img.classList.remove('opacity-0');
+                tempImg.addEventListener('load', () => {
+                    // 预加载成功，更新实际图片
+                    imgInfo.img.src = imgInfo.src;
+                    imgInfo.loaded = true;
+                    imgInfo.errorCode = null;
+                    imgInfo.loading.classList.add(CLASS.hidden);
+                    imgInfo.errorDisplay.classList.add(CLASS.hidden);
                     
-                    retryIndex++;
-                    setTimeout(retryNext, loadDelay);
-                }
-                
-                function onRetryError(e, info) {
-                    info.failed = true;
-                    failedImages.push(info);
-                    info.loading.classList.add(CLASS.hidden);
-                    info.error.classList.remove(CLASS.hidden);
+                    // 添加到成功列表并显示
+                    successfullyLoadedImages.push(imgInfo);
+                    showCard(imgInfo.card);
                     
-                    retryIndex++;
-                    setTimeout(retryNext, loadDelay);
-                }
+                    reloadIndex++;
+                    totalProcessed++;
+                    setTimeout(reloadNext, loadDelay);
+                });
+                
+                tempImg.addEventListener('error', async (e) => {
+                    // 获取错误状态码
+                    const statusCode = await getHttpStatusCode(e);
+                    imgInfo.errorCode = statusCode || '未知';
+                    
+                    console.error(`封面加载失败 (${imgInfo.title}) 错误码: ${imgInfo.errorCode}`, imgInfo.src, e);
+                    
+                    imgInfo.loaded = false;
+                    imgInfo.failed = true;
+                    failedImages.push(imgInfo);
+                    imgInfo.loading.classList.add(CLASS.hidden);
+                    imgInfo.errorCodeDisplay.textContent = imgInfo.errorCode;
+                    imgInfo.errorDisplay.classList.remove(CLASS.hidden);
+                    
+                    reloadIndex++;
+                    totalProcessed++;
+                    setTimeout(reloadNext, loadDelay);
+                });
+                
+                // 开始预加载
+                tempImg.src = imgInfo.src;
             }
             
-            // 开始重新加载
-            retryNext();
+            // 开始重新加载第一张
+            reloadNext();
         }
 
-        // 更新加载进度显示
+        // 更新重新加载进度显示
+        function updateReloadProgress(current, total) {
+            DOM.loadingProgress.textContent = current + 1;
+            const percentage = ((current + 1) / total) * 100;
+            DOM.loadingBar.style.width = `${percentage}%`;
+        }
+
+        // 更新加载进度
         function updateLoadingProgress() {
             DOM.loadingProgress.textContent = currentLoadIndex + 1;
-            const progressPercent = ((currentLoadIndex + 1) / allImages.length) * 100;
-            DOM.loadingBar.style.width = `${progressPercent}%`;
+            const percentage = ((currentLoadIndex + 1) / allImages.length) * 100;
+            DOM.loadingBar.style.width = `${percentage}%`;
         }
 
-        // 视频播放状态管理
-        let playRequested = false;
-        
-        // 打开视频播放 - 修复版
-        function openVideo(video) {
-            if (!video || !video.url) {
-                console.error("无效的视频信息");
-                return;
-            }
+        // 播放视频
+        function playVideo(videoId) {
+            const video = videos.find(v => v.id === videoId);
+            if (!video) return;
             
-            // 保存当前播放的视频信息
             currentVideo = video;
-            playRequested = true;
-            
-            // 重置视频错误状态
-            DOM.videoError.classList.add(CLASS.hidden);
-            
-            DOM.modalTitle.textContent = video.title;
-            setLoading(true);
-            DOM.videoPlayer.pause();
-            
-            // 移除之前的事件监听器，防止重复绑定
-            DOM.videoPlayer.removeEventListener('canplay', playWhenReady);
-            DOM.videoPlayer.removeEventListener('error', handleVideoError);
-            DOM.videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
-            
-            // 设置视频源并加载
+            DOM.playerTitle.textContent = video.title;
             DOM.videoPlayer.src = video.url;
-            DOM.videoPlayer.load();
+            DOM.videoContainer.classList.remove(CLASS.hidden);
             
-            // 添加事件监听器
-            DOM.videoPlayer.addEventListener('canplay', playWhenReady);
-            DOM.videoPlayer.addEventListener('error', handleVideoError);
-            DOM.videoPlayer.addEventListener('loadedmetadata', onLoadedMetadata);
-            
-            // 显示模态框
-            DOM.videoModal.classList.remove(CLASS.hidden);
-            document.body.style.overflow = 'hidden';
-        }
-        
-        // 视频元数据加载完成
-        function onLoadedMetadata() {
-            console.log("视频元数据加载完成");
-            // 可以在这里设置视频的初始音量等
-        }
-        
-        // 当视频可以播放时
-        function playWhenReady() {
-            if (playRequested) {
-                // 尝试播放视频
-                DOM.videoPlayer.play()
-                    .then(() => {
-                        console.log("视频播放成功");
-                        setLoading(false);
-                    })
-                    .catch(error => {
-                        console.error('播放失败:', error);
-                        handlePlayError(error);
-                    });
-                DOM.videoPlayer.removeEventListener('canplay', playWhenReady);
-            }
-        }
-        
-        // 处理播放错误
-        function handlePlayError(error) {
-            setLoading(false);
-            
-            // 显示错误信息
-            DOM.videoError.classList.remove(CLASS.hidden);
-            
-            // 根据错误类型显示不同信息
-            let errorMsg = "无法播放视频，请稍后重试";
-            if (error.name === 'NotAllowedError') {
-                errorMsg = "自动播放被浏览器阻止，请点击播放按钮手动播放";
-            } else if (error.name === 'NotFoundError') {
-                errorMsg = "视频资源未找到";
-            } else if (error.name === 'NetworkError') {
-                errorMsg = "网络错误，无法加载视频";
-            }
-            
-            DOM.videoErrorMessage.textContent = errorMsg;
-        }
-        
-        // 处理视频加载错误
-        function handleVideoError() {
-            console.error('视频加载错误:', DOM.videoPlayer.error);
-            setLoading(false);
-            
-            // 显示错误信息
-            DOM.videoError.classList.remove(CLASS.hidden);
-            
-            let errorMsg = "视频加载失败";
-            if (DOM.videoPlayer.error) {
-                switch(DOM.videoPlayer.error.code) {
-                    case 1: // MEDIA_ERR_ABORTED
-                        errorMsg = "视频加载被中止";
-                        break;
-                    case 2: // MEDIA_ERR_NETWORK
-                        errorMsg = "网络错误导致视频加载失败";
-                        break;
-                    case 3: // MEDIA_ERR_DECODE
-                        errorMsg = "视频解码失败";
-                        break;
-                    case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-                        errorMsg = "视频格式不受支持";
-                        break;
-                    default:
-                        errorMsg = "未知错误导致视频无法加载";
-                }
-            }
-            
-            DOM.videoErrorMessage.textContent = errorMsg;
-        }
-        
-        // 重试播放视频
-        function retryPlayingVideo() {
-            if (!currentVideo) return;
-            
-            // 隐藏错误信息
+            // 显示加载指示器
+            DOM.loadingIndicator.classList.remove(CLASS.hidden);
             DOM.videoError.classList.add(CLASS.hidden);
-            setLoading(true);
             
-            // 重新加载视频
-            DOM.videoPlayer.src = currentVideo.url;
+            // 滚动到播放器
+            DOM.videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // 尝试播放视频
             DOM.videoPlayer.load();
+            const playPromise = DOM.videoPlayer.play();
             
-            // 重新尝试播放
-            playRequested = true;
-            DOM.videoPlayer.addEventListener('canplay', playWhenReady);
-        }
-        
-        // 设置加载状态
-        function setLoading(state) {
-            DOM.loadingIndicator.classList.toggle(CLASS.hidden, !state);
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // 播放成功
+                    DOM.loadingIndicator.classList.add(CLASS.hidden);
+                }).catch(error => {
+                    // 播放失败
+                    console.error('视频播放失败:', error);
+                    DOM.loadingIndicator.classList.add(CLASS.hidden);
+                    DOM.videoError.classList.remove(CLASS.hidden);
+                    DOM.videoErrorMessage.textContent = error.message || '无法加载视频，请稍后重试';
+                });
+            }
         }
 
-        // 关闭视频播放
-        function closeVideo() {
-            playRequested = false;
-            currentVideo = null;
-            
-            DOM.videoModal.classList.add(CLASS.hidden);
+        // 关闭视频播放器
+        function closeVideoPlayer() {
             DOM.videoPlayer.pause();
-            document.body.style.overflow = '';
-            
-            // 清理事件监听器
-            DOM.videoPlayer.removeEventListener('canplay', playWhenReady);
-            DOM.videoPlayer.removeEventListener('error', handleVideoError);
-            DOM.videoPlayer.removeEventListener('loadedmetadata', onLoadedMetadata);
+            DOM.videoPlayer.src = '';
+            DOM.videoContainer.classList.add(CLASS.hidden);
+            currentVideo = null;
         }
 
-        // 事件监听初始化
-        function initEventListeners() {
-            // 关闭视频按钮
-            DOM.closeModal.addEventListener('click', closeVideo);
-            
-            // 点击模态框外部关闭
-            DOM.videoModal.addEventListener('click', (e) => {
-                if (e.target === DOM.videoModal) {
-                    closeVideo();
-                }
-            });
-            
-            // 键盘ESC关闭
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !DOM.videoModal.classList.contains(CLASS.hidden)) {
-                    closeVideo();
-                }
-            });
-            
-            // 视频卡片点击
+        // 事件监听
+        function setupEventListeners() {
+            // 视频卡片点击事件
             DOM.videoGrid.addEventListener('click', (e) => {
                 const card = e.target.closest(`.${CLASS.videoCard}`);
                 if (card) {
                     const videoId = parseInt(card.dataset.videoId);
-                    const video = videos.find(v => v.id === videoId);
-                    if (video) openVideo(video);
+                    playVideo(videoId);
                 }
             });
             
-            // 窗口大小改变
-            window.addEventListener('resize', debounce(applyLayout, 300));
+            // 关闭播放器
+            DOM.closePlayer.addEventListener('click', closeVideoPlayer);
             
-            // 顶部重新加载封面按钮
-            DOM.topRetryBtn.addEventListener('click', () => {
-                DOM.topRetryBtn.classList.add(CLASS.hidden);
-                DOM.loadingText.textContent = "正在重新加载失败的封面";
-                DOM.globalLoading.classList.remove(CLASS.hidden);
-                retryFailedImages();
+            // 视频播放错误处理
+            DOM.videoPlayer.addEventListener('error', (e) => {
+                console.error('视频播放错误:', e);
+                DOM.loadingIndicator.classList.add(CLASS.hidden);
+                DOM.videoError.classList.remove(CLASS.hidden);
+                
+                // 提供更具体的错误信息
+                const errorMessages = {
+                    1: '视频加载被中止',
+                    2: '视频格式不支持',
+                    3: '视频解码失败',
+                    4: '视频无法加载',
+                    5: '视频访问权限不足'
+                };
+                
+                DOM.videoErrorMessage.textContent = errorMessages[e.target.error.code] || 
+                    `视频播放错误 (代码: ${e.target.error.code})`;
             });
             
-            // 视频播放重试按钮
-            DOM.retryVideo.addEventListener('click', retryPlayingVideo);
-        }
-
-        // 防抖函数
-        function debounce(func, wait) {
-            let timeout;
-            return function() {
-                const context = this;
-                const args = arguments;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
-        }
-
-        // 页面卸载时清理资源
-        function cleanupOnUnload() {
-            currentLoadIndex = allImages.length;
-            DOM.videoPlayer.pause();
-            DOM.videoPlayer.src = '';
+            // 视频可以播放时隐藏加载指示器
+            DOM.videoPlayer.addEventListener('canplay', () => {
+                DOM.loadingIndicator.classList.add(CLASS.hidden);
+            });
+            
+            // 重试播放视频
+            DOM.retryVideo.addEventListener('click', () => {
+                if (currentVideo) {
+                    DOM.videoError.classList.add(CLASS.hidden);
+                    DOM.loadingIndicator.classList.remove(CLASS.hidden);
+                    DOM.videoPlayer.src = currentVideo.url;
+                    DOM.videoPlayer.load();
+                    DOM.videoPlayer.play().catch(error => {
+                        console.error('视频重试播放失败:', error);
+                        DOM.loadingIndicator.classList.add(CLASS.hidden);
+                        DOM.videoError.classList.remove(CLASS.hidden);
+                        DOM.videoErrorMessage.textContent = error.message || '无法加载视频，请稍后重试';
+                    });
+                }
+            });
+            
+            // 顶部重新加载封面按钮 - 智能决定重新加载内容
+            DOM.topRetryBtn.addEventListener('click', () => {
+                reloadCovers();
+            });
+            
+            // 窗口大小变化时重新布局
+            window.addEventListener('resize', applyLayout);
         }
 
         // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
+        function init() {
             createVideoCards();
-            initEventListeners();
-        });
-        
-        window.addEventListener('unload', cleanupOnUnload);
+            setupEventListeners();
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
+    
