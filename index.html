@@ -749,10 +749,10 @@
                 }
                 coverImg.alt = video.title;
                 
-                // 加载指示器 - 添加旋转动画
+                // 加载指示器 - 移除旋转动画
                 const coverLoading = document.createElement('div');
                 coverLoading.className = 'cover-loading hidden';
-                coverLoading.innerHTML = '<i class="fa fa-circle-o-notch text-gray-400 dark:text-gray-600 text-xl animate-spin"></i>';
+                coverLoading.innerHTML = '<i class="fa fa-circle-o-notch text-gray-400 dark:text-gray-600 text-xl"></i>';
                 
                 // 错误提示
                 const coverError = document.createElement('div');
