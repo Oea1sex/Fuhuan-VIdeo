@@ -27,22 +27,42 @@
                     },
                     keyframes: {
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                            '0%': { opacity: '0', transform: 'translateY(10px) scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)' }
                         },
                         fadeOut: {
+                            '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                            '100%': { opacity: '0', transform: 'translateY(-20px) scale(0.8)' }
+                        },
+                        slideIn: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideOut: {
                             '0%': { opacity: '1', transform: 'translateY(0)' },
-                            '100%': { opacity: '0', transform: 'translateY(-10px)' }
+                            '100%': { opacity: '0', transform: 'translateY(-30px)' }
                         },
                         pulse: {
                             '0%, 100%': { opacity: '1' },
                             '50%': { opacity: '0.5' }
+                        },
+                        touchFeedback: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(0.95)' }
+                        },
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' }
                         }
                     },
                     animation: {
-                        fadeIn: 'fadeIn 0.5s ease-out forwards',
+                        fadeIn: 'fadeIn 0.4s ease-out forwards',
                         fadeOut: 'fadeOut 0.3s ease-in forwards',
-                        pulse: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                        slideIn: 'slideIn 0.5s ease-out forwards',
+                        slideOut: 'slideOut 0.4s ease-in forwards',
+                        pulse: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        touchFeedback: 'touchFeedback 0.2s ease-in-out forwards',
+                        spin: 'spin 1s linear infinite'
                     }
                 }
             }
@@ -50,19 +70,15 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            /* 核心修改：9:16竖屏比例 */
             .aspect-9x16 {
                 aspect-ratio: 9 / 16;
             }
             
-            .video-card-hover {
+            .video-card {
                 @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] will-change-transform cursor-pointer;
             }
             .play-overlay {
                 @apply opacity-0 hover:opacity-100 transition-opacity duration-300;
-            }
-            .error-message {
-                @apply absolute inset-0 bg-gray-100 dark:bg-dark-bg flex flex-col items-center justify-center p-2 text-center hidden;
             }
             .cover-loading {
                 @apply absolute inset-0 flex items-center justify-center;
@@ -70,16 +86,11 @@
             .cover-error {
                 @apply absolute inset-0 bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center p-4 text-center hidden;
             }
-            /* 网格布局优化 */
-            .grid-2x {
-                @apply grid-cols-2;
-            }
-            .grid-3x {
-                @apply grid-cols-3;
-            }
-            .grid-4x {
-                @apply grid-cols-4;
-            }
+            .grid-2x { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-3x { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .grid-4x { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .grid-1x { grid-template-columns: 1fr; }
+            
             .backdrop-blur {
                 backdrop-filter: blur(8px);
             }
@@ -92,52 +103,35 @@
             .card-enter-active {
                 @apply opacity-100 transform scale-100 transition-all duration-500;
             }
-            /* 手机专用样式 */
             .mobile-player {
                 @apply fixed inset-0 z-50 rounded-none mb-0;
-            }
-            .mobile-header {
-                @apply py-2 px-3;
-            }
-            .mobile-video-title {
-                @apply text-base;
             }
             .touch-friendly {
                 @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
             }
             .mobile-grid {
-                @apply grid-cols-2 gap-3 px-2;
+                @apply grid-1x gap-4 px-3;
             }
             .mobile-card {
-                @apply p-1;
+                @apply p-2;
             }
-            .mobile-play-icon {
-                @apply w-12 h-12;
-            }
-            /* 自定义暂停按钮 */
             .custom-pause-button {
                 @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-16 h-16 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 z-10;
             }
             .custom-pause-button.visible {
                 @apply opacity-100;
             }
-            .video-container-hover {
-                @apply hover:cursor-pointer;
-            }
-            /* 动画类 */
-            .fade-in {
-                @apply opacity-0 animate-fadeIn;
-            }
-            .fade-out {
-                @apply opacity-100 animate-fadeOut;
-            }
-            /* 控制按钮动画 */
             .control-button {
                 @apply transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/50;
             }
-            /* 平滑过渡 */
             .smooth-transition {
                 @apply transition-all duration-300 ease-in-out;
+            }
+            .exit-screen {
+                @apply animate-slideOut pointer-events-none;
+            }
+            .enter-screen {
+                @apply animate-slideIn;
             }
         }
     </style>
@@ -158,10 +152,8 @@
         </div>
     </header>
 
-    <!-- 视频播放器 -->
     <div class="container mx-auto px-4 py-6">
         <div id="video-player-container" class="player-container hidden">
-            <!-- 视频头部控制区 -->
             <div class="flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent text-white">
                 <h2 id="video-title" class="text-xl font-semibold truncate max-w-[70%] smooth-transition"></h2>
                 <button id="close-player" class="control-button w-10 h-10 rounded-full bg-black/30 backdrop-blur flex items-center justify-center hover:bg-black/50 transition-colors">
@@ -169,14 +161,11 @@
                 </button>
             </div>
             
-            <!-- 视频播放区 -->
-            <div class="relative video-container-hover">
-                <!-- 自定义暂停按钮 -->
+            <div class="relative">
                 <button id="custom-pause-button" class="custom-pause-button">
                     <i class="fa fa-pause text-2xl"></i>
                 </button>
                 
-                <!-- 视频播放错误提示 -->
                 <div id="video-error" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white hidden opacity-0 transition-opacity duration-300">
                     <i class="fa fa-exclamation-circle text-error text-4xl mb-4 animate-pulse"></i>
                     <p class="text-xl font-medium mb-2">视频播放失败</p>
@@ -187,17 +176,17 @@
                 </div>
                 
                 <video id="video-player" class="w-full object-contain" oncontextmenu="return false;"></video>
-                <div id="loading-indicator" class="hidden absolute inset-0 flex items-center justify-center bg-black/30"></div>
+                <div id="loading-indicator" class="hidden absolute inset-0 flex items-center justify-center bg-black/30">
+                    <i class="fa fa-circle-o-notch text-white text-4xl animate-spin"></i>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 视频列表 - 9:16竖屏布局 -->
     <div class="container mx-auto px-4 py-4">
         <div id="video-grid" class="grid gap-4"></div>
         
-        <!-- 全局加载状态指示器 -->
-        <div id="global-loading" class="mt-8 text-center hidden fade-in">
+        <div id="global-loading" class="mt-8 text-center hidden animate-fadeIn">
             <p class="text-gray-600 dark:text-gray-400">
                 <span id="loading-text">正在加载封面图片</span> 
                 <span id="loading-progress">0</span>/<span id="total-items">0</span>
@@ -209,57 +198,20 @@
     </div>
 
     <script>
-        // 应用主控制器
         const VideoPlayerApp = {
-            // DOM元素缓存
-            elements: {
-                videoGrid: document.getElementById('video-grid'),
-                videoContainer: document.getElementById('video-player-container'),
-                videoPlayer: document.getElementById('video-player'),
-                videoTitle: document.getElementById('video-title'),
-                closePlayer: document.getElementById('close-player'),
-                loadingIndicator: document.getElementById('loading-indicator'),
-                globalLoading: document.getElementById('global-loading'),
-                loadingProgress: document.getElementById('loading-progress'),
-                totalItems: document.getElementById('total-items'),
-                loadingBar: document.getElementById('loading-bar'),
-                loadingText: document.getElementById('loading-text'),
-                reloadCovers: document.getElementById('reload-covers'),
-                videoError: document.getElementById('video-error'),
-                videoErrorMessage: document.getElementById('video-error-message'),
-                retryVideo: document.getElementById('retry-video'),
-                themeToggle: document.getElementById('theme-toggle'),
-                themeIcon: document.querySelector('#theme-toggle i'),
-                pauseButton: document.getElementById('custom-pause-button'),
-                header: document.querySelector('header')
-            },
+            elements: {},
             
-            // 样式类名常量
-            classes: {
-                hidden: 'hidden',
-                videoCard: 'video-card-hover',
-                coverLoading: 'cover-loading',
-                coverError: 'cover-error',
-                grid2x: 'grid-2x',
-                grid3x: 'grid-3x',
-                grid4x: 'grid-4x',
-                cardEnter: 'card-enter',
-                cardEnterActive: 'card-enter-active',
-                active: 'active',
-                visible: 'visible',
-                fadeIn: 'fade-in',
-                fadeOut: 'fade-out'
-            },
-            
-            // 配置常量
             config: {
                 errorCoverUrl: "https://d.feiliupan.com/t/127891246667534336/ERROR.jpeg",
-                loadDelay: 300,
+                baseLoadDelay: 150,
+                variableLoadDelay: 100,
+                batchSize: 2,
                 videoLoadTimeout: 15000,
-                scrollDuration: 500
+                scrollDuration: 500,
+                touchAnimationDuration: 200,
+                visibleThreshold: 0.5
             },
             
-            // 应用状态
             state: {
                 videos: [
                     { id: 1, title: "空悲切", url: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.jpg" },
@@ -282,37 +234,60 @@
                 currentVideo: null,
                 allImages: [],
                 failedImages: [],
-                sortedSuccessImages: [],
                 currentLoadIndex: 0,
                 totalProcessed: 0,
                 loadTimeout: null,
                 isMobile: false,
-                isScrolling: false
+                isScrolling: false,
+                loadIntervalId: null,
+                lastScrollTop: 0,
+                scrollDirection: '',
+                observer: null
             },
             
-            // 初始化应用
             init() {
+                this.cacheElements();
                 this.setupEventListeners();
                 this.createVideoCards();
                 this.initializeTheme();
                 this.checkMobileDevice();
-                window.addEventListener('orientationchange', () => {
-                    this.handleOrientationChange();
-                });
+                window.addEventListener('orientationchange', () => this.handleOrientationChange());
             },
             
-            // 检测是否为移动设备
+            cacheElements() {
+                this.elements = {
+                    videoGrid: document.getElementById('video-grid'),
+                    videoContainer: document.getElementById('video-player-container'),
+                    videoPlayer: document.getElementById('video-player'),
+                    videoTitle: document.getElementById('video-title'),
+                    closePlayer: document.getElementById('close-player'),
+                    loadingIndicator: document.getElementById('loading-indicator'),
+                    globalLoading: document.getElementById('global-loading'),
+                    loadingProgress: document.getElementById('loading-progress'),
+                    totalItems: document.getElementById('total-items'),
+                    loadingBar: document.getElementById('loading-bar'),
+                    loadingText: document.getElementById('loading-text'),
+                    reloadCovers: document.getElementById('reload-covers'),
+                    videoError: document.getElementById('video-error'),
+                    videoErrorMessage: document.getElementById('video-error-message'),
+                    retryVideo: document.getElementById('retry-video'),
+                    themeToggle: document.getElementById('theme-toggle'),
+                    themeIcon: document.querySelector('#theme-toggle i'),
+                    pauseButton: document.getElementById('custom-pause-button')
+                };
+            },
+            
             checkMobileDevice() {
                 this.state.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 if (this.state.isMobile) {
                     document.body.classList.add('mobile');
                     this.elements.themeToggle.classList.add('touch-friendly');
                     this.elements.reloadCovers.classList.add('touch-friendly');
+                    this.setupScrollAnimationObserver();
                     this.setupLazyLoading();
                 }
             },
             
-            // 处理屏幕旋转
             handleOrientationChange() {
                 this.applyLayout();
                 if (this.state.currentVideo) {
@@ -323,50 +298,30 @@
                 }
             },
             
-            // 设置事件监听器
             setupEventListeners() {
-                // 视频卡片点击事件
+                 this.elements.videoContainer.addEventListener('mouseenter', () => {
+                     this.state.isMouseOverVideo = true;
+                 });
+                 this.elements.videoContainer.addEventListener('mouseleave', () => {
+                     this.state.isMouseOverVideo = false;
+                 });
+                 
+                 // 视频卡片点击事件
                 this.elements.videoGrid.addEventListener('click', (e) => {
-                    const card = e.target.closest(`.${this.classes.videoCard}`);
+                    const card = e.target.closest('.video-card');
                     if (card) {
+                        this.addTouchFeedback(card);
                         const videoId = parseInt(card.dataset.videoId);
-                        this.playVideo(videoId);
+                        setTimeout(() => this.playVideo(videoId), this.config.touchAnimationDuration);
                     }
                 });
                 
                 // 关闭播放器
                 this.elements.closePlayer.addEventListener('click', () => this.closeVideoPlayer());
                 
-                // 视频播放错误处理
-                this.elements.videoPlayer.addEventListener('error', (e) => this.handleVideoError(e));
-                
-                // 视频可以播放时隐藏加载指示器
-                this.elements.videoPlayer.addEventListener('canplay', () => this.hideLoadingIndicator());
-                this.elements.videoPlayer.addEventListener('loadeddata', () => this.hideLoadingIndicator());
-                
-                // 视频开始播放时隐藏加载指示器
-                this.elements.videoPlayer.addEventListener('play', () => {
-                    this.hideLoadingIndicator();
-                    this.updatePauseButtonIcon();
-                });
-                
-                // 视频缓冲时显示加载指示器
-                this.elements.videoPlayer.addEventListener('waiting', () => {
-                    if (this.elements.videoError.classList.contains(this.classes.hidden)) {
-                        this.showLoadingIndicator();
-                    }
-                });
-                
-                // 视频暂停时更新按钮图标
-                this.elements.videoPlayer.addEventListener('pause', () => {
-                    this.hideLoadingIndicator();
-                    this.updatePauseButtonIcon();
-                });
-                
-                // 视频结束时更新按钮图标
-                this.elements.videoPlayer.addEventListener('ended', () => {
-                    this.hideLoadingIndicator();
-                    this.updatePauseButtonIcon();
+                // 视频事件监听
+                ['error', 'canplay', 'loadeddata', 'play', 'waiting', 'pause', 'ended'].forEach(event => {
+                    this.elements.videoPlayer.addEventListener(event, (e) => this.handleVideoEvent(event, e));
                 });
                 
                 // 重试播放视频
@@ -384,23 +339,134 @@
                 // 自定义暂停/播放按钮点击事件
                 this.elements.pauseButton.addEventListener('click', () => this.togglePlayPause());
                 
-                // 点击视频区域也触发暂停/播放
-                this.elements.videoPlayer.addEventListener('click', () => this.togglePlayPause());
-                
-                // 鼠标悬停在视频上时显示暂停按钮
-                this.elements.videoContainer.addEventListener('mouseenter', () => {
-                    this.elements.pauseButton.classList.add(this.classes.visible);
+                // 点击视频区域触发暂停/播放
+                this.elements.videoPlayer.addEventListener('click', () => {
+                    this.addTouchFeedback(this.elements.videoPlayer);
+                    setTimeout(() => this.togglePlayPause(), this.config.touchAnimationDuration);
                 });
                 
-                // 鼠标离开视频时隐藏暂停按钮
+                // 视频悬停显示暂停按钮
+                this.elements.videoContainer.addEventListener('mouseenter', () => {
+                    this.elements.pauseButton.classList.add('visible');
+                });
+                
                 this.elements.videoContainer.addEventListener('mouseleave', () => {
                     if (!this.elements.videoPlayer.paused) {
-                        this.elements.pauseButton.classList.remove(this.classes.visible);
+                        this.elements.pauseButton.classList.remove('visible');
                     }
+                });
+                
+                // 设置按钮触摸反馈
+                this.setupButtonTouchHandling();
+                
+                // 滚动方向检测
+                window.addEventListener('scroll', () => this.detectScrollDirection());
+            },
+            
+            // 检测滚动方向
+            detectScrollDirection() {
+                const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (currentScrollTop > this.state.lastScrollTop && currentScrollTop > 100) {
+                    // 向下滚动
+                    this.state.scrollDirection = 'down';
+                } else if (currentScrollTop < this.state.lastScrollTop) {
+                    // 向上滚动
+                    this.state.scrollDirection = 'up';
+                }
+                
+                this.state.lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+            },
+            
+            // 设置滚动动画观察器
+            setupScrollAnimationObserver() {
+                if ('IntersectionObserver' in window) {
+                    this.state.observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            const card = entry.target;
+                            
+                            // 清除所有动画类
+                            card.classList.remove('enter-screen', 'exit-screen', 'card-enter-active');
+                            
+                            if (entry.isIntersecting) {
+                                // 元素进入视口
+                                if (this.state.isMobile) {
+                                    card.classList.add('enter-screen');
+                                } else {
+                                    card.classList.add('card-enter-active');
+                                }
+                            } else if (this.state.isMobile) {
+                                // 移动端元素离开视口，根据滚动方向添加不同动画
+                                if (this.state.scrollDirection === 'down' && entry.boundingClientRect.top < 0) {
+                                    // 向上隐藏（缩小并上移）
+                                    card.classList.add('exit-screen');
+                                }
+                            }
+                        });
+                    }, { 
+                        rootMargin: '0px 0px 0px 0px',
+                        threshold: this.config.visibleThreshold
+                    });
+                }
+            },
+            
+            handleVideoEvent(event, e) {
+                switch(event) {
+                    case 'error':
+                        this.handleVideoError(e);
+                        break;
+                    case 'canplay':
+                    case 'loadeddata':
+                    case 'pause':
+                    case 'ended':
+                        this.hideLoadingIndicator();
+                        this.updatePauseButtonIcon();
+                        break;
+                    case 'play':
+                        this.hideLoadingIndicator();
+                        this.updatePauseButtonIcon();
+                        break;
+                    case 'waiting':
+                        if (this.elements.videoError.classList.contains('hidden')) {
+                            this.showLoadingIndicator();
+                        }
+                        break;
+                }
+            },
+            
+            setupButtonTouchHandling() {
+                document.querySelectorAll('button').forEach(button => {
+                    // 触摸事件
+                    ['touchstart', 'mousedown'].forEach(event => {
+                        button.addEventListener(event, (e) => {
+                            if (event === 'touchstart') e.preventDefault();
+                            this.addTouchFeedback(button);
+                        });
+                    });
+                    
+                    ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(event => {
+                        button.addEventListener(event, (e) => {
+                            if (['touchend', 'touchcancel'].includes(event)) e.preventDefault();
+                            this.clearTouchFeedback(button);
+                        });
+                    });
                 });
             },
             
-            // 切换播放/暂停状态
+            addTouchFeedback(element) {
+                if (this.state.isMobile) {
+                    element.classList.add('animate-touchFeedback');
+                }
+            },
+            
+            clearTouchFeedback(element) {
+                if (this.state.isMobile) {
+                    setTimeout(() => {
+                        element.classList.remove('animate-touchFeedback');
+                    }, this.config.touchAnimationDuration);
+                }
+            },
+            
             togglePlayPause() {
                 if (this.elements.videoPlayer.paused || this.elements.videoPlayer.ended) {
                     this.elements.videoPlayer.play();
@@ -409,35 +475,29 @@
                 }
             },
             
-            // 更新暂停按钮图标
             updatePauseButtonIcon() {
                 const icon = this.elements.pauseButton.querySelector('i');
                 if (this.elements.videoPlayer.paused || this.elements.videoPlayer.ended) {
-                    icon.classList.remove('fa-pause');
-                    icon.classList.add('fa-play');
-                    this.elements.pauseButton.classList.add(this.classes.visible);
+                    icon.classList.replace('fa-pause', 'fa-play');
+                    this.elements.pauseButton.classList.add('visible');
                 } else {
-                    icon.classList.remove('fa-play');
-                    icon.classList.add('fa-pause');
+                    icon.classList.replace('fa-play', 'fa-pause');
                     if (!this.isMouseOverVideo()) {
-                        this.elements.pauseButton.classList.remove(this.classes.visible);
+                        this.elements.pauseButton.classList.remove('visible');
                     }
                 }
             },
             
-            // 检查鼠标是否在视频上方
             isMouseOverVideo() {
-                return this.elements.pauseButton.classList.contains(this.classes.visible);
-            },
+                 return this.state.isMouseOverVideo || this.elements.pauseButton.classList.contains('visible');
+              },
             
-            // 平滑滚动到顶部
             scrollToTop() {
                 if (this.state.isScrolling) return;
                 
                 this.state.isScrolling = true;
                 const startPosition = window.scrollY;
-                const targetPosition = 0;
-                const distance = targetPosition - startPosition;
+                const distance = -startPosition;
                 const duration = this.config.scrollDuration;
                 let startTime = null;
                 
@@ -457,15 +517,11 @@
                 requestAnimationFrame(animation);
             },
             
-            // 缓动函数
             easeInOutQuad(t, b, c, d) {
                 t /= d / 2;
-                if (t < 1) return c / 2 * t * t + b;
-                t--;
-                return -c / 2 * (t * (t - 2) - 1) + b;
+                return t < 1 ? c / 2 * t * t + b : -c / 2 * (--t * (t - 2) - 1) + b;
             },
             
-            // 图片懒加载实现
             setupLazyLoading() {
                 if ('IntersectionObserver' in window && this.state.isMobile) {
                     const observer = new IntersectionObserver((entries) => {
@@ -474,31 +530,50 @@
                                 const img = entry.target;
                                 const src = img.dataset.src;
                                 if (src) {
+                                    // 添加加载指示器
+                                    const loadingIndicator = img.parentElement.querySelector('.cover-loading');
+                                    loadingIndicator.classList.remove('hidden');
+                                    
+                                    // 图片加载完成后隐藏指示器
+                                    img.onload = () => {
+                                        loadingIndicator.classList.add('hidden');
+                                        img.classList.remove('opacity-0');
+                                    };
+                                    
+                                    img.onerror = () => {
+                                          loadingIndicator.classList.add('hidden');
+                                          img.onerror = function() {
+                                              this.style.backgroundColor = '#f3f4f6';
+                                              this.style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 24%22%3E%3Cpath fill%3D%22%239ca3af%22 d%3D%22M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E")';
+                                              this.style.backgroundSize = 'contain';
+                                              this.style.backgroundRepeat = 'no-repeat';
+                                              this.style.backgroundPosition = 'center';
+                                          };
+                                          img.src = this.config.errorCoverUrl;
+                                          img.parentElement.querySelector('.cover-error').classList.remove('hidden');
+                                      };
+                                    
                                     img.src = src;
                                     img.removeAttribute('data-src');
                                 }
                                 observer.unobserve(img);
                             }
                         });
-                    }, {
-                        rootMargin: '200px 0px',
-                        threshold: 0.01
+                    }, { 
+                        rootMargin: '500px 0px',  // 提前500px开始加载
+                        threshold: 0.01 
                     });
 
-                    document.querySelectorAll('.video-cover[data-src]').forEach(img => {
-                        observer.observe(img);
-                    });
+                    document.querySelectorAll('.video-cover[data-src]').forEach(img => observer.observe(img));
                 }
             },
             
-            // 显示加载指示器
             showLoadingIndicator() {
-                this.elements.loadingIndicator.classList.remove(this.classes.hidden);
+                this.elements.loadingIndicator.classList.remove('hidden');
             },
             
-            // 隐藏加载指示器
             hideLoadingIndicator() {
-                this.elements.loadingIndicator.classList.add(this.classes.hidden);
+                this.elements.loadingIndicator.classList.add('hidden');
                 
                 if (this.state.loadTimeout) {
                     clearTimeout(this.state.loadTimeout);
@@ -506,28 +581,22 @@
                 }
             },
             
-            // 根据屏幕宽度确定列数
             determineLayout() {
                 const windowWidth = window.innerWidth;
-                
-                if (windowWidth >= 1200) {
-                    return { columns: 4, name: "4x" }; // 大屏幕4列
-                } else if (windowWidth >= 768) {
-                    return { columns: 3, name: "3x" }; // 中等屏幕3列
-                } else {
-                    return { columns: 2, name: "2x" }; // 小屏幕2列
-                }
+                if (this.state.isMobile) return { columns: 1, name: "1x" };
+                if (windowWidth >= 1200) return { columns: 4, name: "4x" };
+                if (windowWidth >= 768) return { columns: 3, name: "3x" };
+                return { columns: 2, name: "2x" };
             },
             
-            // 应用布局 - 适配9:16竖屏
             applyLayout() {
                 const layout = this.determineLayout();
                 const grid = this.elements.videoGrid;
                 
                 // 移除所有布局类
-                grid.classList.remove(this.classes.grid2x, this.classes.grid3x, this.classes.grid4x, 'mobile-grid');
+                grid.classList.remove('grid-1x', 'grid-2x', 'grid-3x', 'grid-4x', 'mobile-grid');
                 
-                // 移动端使用2列网格布局
+                // 移动端使用1列网格布局（1x16）
                 if (this.state.isMobile) {
                     grid.classList.add('mobile-grid');
                     this.adjustMobileCardStyles();
@@ -535,71 +604,73 @@
                 }
                 
                 // 桌面端布局
-                if (layout.columns === 4) {
-                    grid.classList.add(this.classes.grid4x);
-                } else if (layout.columns === 3) {
-                    grid.classList.add(this.classes.grid3x);
-                } else {
-                    grid.classList.add(this.classes.grid2x);
-                }
-                
+                grid.classList.add(`grid-${layout.name}`);
                 this.adjustCardStyles(layout.columns);
             },
             
-            // 调整移动端卡片样式
             adjustMobileCardStyles() {
-                const cards = document.querySelectorAll(`.${this.classes.videoCard}`);
-                cards.forEach(card => {
+                document.querySelectorAll('.video-card').forEach(card => {
                     card.classList.remove('p-2', 'p-3', 'p-4');
                     card.classList.add('mobile-card');
                     
                     const title = card.querySelector('h3');
-                    title?.classList.remove('text-lg');
-                    title?.classList.add('text-sm');
-                    
-                    const playIcon = card.querySelector('.play-overlay i');
-                    playIcon?.classList.add('mobile-play-icon');
+                    if (title) {
+                        title.classList.remove('text-lg');
+                        title.classList.add('text-base', 'font-semibold');
+                    }
                 });
             },
             
-            // 调整卡片样式以适应不同布局
             adjustCardStyles(columns) {
-                const cards = document.querySelectorAll(`.${this.classes.videoCard}`);
+                const cards = document.querySelectorAll('.video-card');
+                const grid = this.elements.videoGrid;
                 
-                // 重置卡片内边距
+                // 重置样式
                 cards.forEach(card => {
                     card.classList.remove('p-2', 'p-3', 'p-4');
                     const title = card.querySelector('h3');
-                    title?.classList.remove('text-lg', 'text-sm');
+                    if (title) {
+                        title.classList.remove('text-lg', 'text-sm', 'text-base', 'font-semibold');
+                    }
                 });
                 
                 // 设置网格间距
-                this.elements.videoGrid.classList.remove('gap-4', 'gap-6');
+                grid.classList.remove('gap-4', 'gap-5', 'gap-6');
                 
                 if (columns === 4) {
-                    this.elements.videoGrid.classList.add('gap-4');
+                    grid.classList.add('gap-4');
                     cards.forEach(card => card.classList.add('p-2'));
                 } else if (columns === 3) {
-                    this.elements.videoGrid.classList.add('gap-5');
+                    grid.classList.add('gap-5');
                     cards.forEach(card => card.classList.add('p-3'));
                 } else {
-                    this.elements.videoGrid.classList.add('gap-6');
+                    grid.classList.add('gap-6');
                     cards.forEach(card => {
                         card.classList.add('p-4');
-                        const title = card.querySelector('h3');
-                        title?.classList.add('text-lg');
+                        card.querySelector('h3')?.classList.add('text-lg');
                     });
                 }
             },
             
-            // 创建视频卡片 - 核心修改：使用9:16比例
             createVideoCards() {
+                // 清除可能存在的加载计时器
+                if (this.state.loadIntervalId) {
+                    clearInterval(this.state.loadIntervalId);
+                    this.state.loadIntervalId = null;
+                }
+                
+                // 断开之前的观察器连接
+                if (this.state.observer) {
+                    document.querySelectorAll('.video-card').forEach(card => {
+                        this.state.observer.unobserve(card);
+                    });
+                }
+                
                 this.applyLayout();
                 
                 // 重置状态
                 this.state.allImages = [];
                 this.state.failedImages = [];
-                this.state.sortedSuccessImages = [];
                 this.state.currentLoadIndex = 0;
                 this.state.totalProcessed = 0;
                 
@@ -617,45 +688,53 @@
                 
                 this.elements.videoGrid.appendChild(fragment);
                 
-                // 设置滚动动画
-                this.setupScrollAnimation();
+                // 为移动设备设置滚动动画观察器
+                if (this.state.isMobile && this.state.observer) {
+                    document.querySelectorAll('.video-card').forEach(card => {
+                        this.state.observer.observe(card);
+                    });
+                }
                 
                 // 更新加载状态显示
                 this.elements.totalItems.textContent = this.state.allImages.length;
-                this.elements.globalLoading.classList.remove(this.classes.hidden);
+                this.elements.globalLoading.classList.remove('hidden');
                 
-                // 开始随机加载封面
-                this.startRandomLoading();
+                // 开始分批、间隔加载封面
+                if (!this.state.isMobile) {
+                    this.startBatchLoading();
+                } else {
+                    // 移动设备使用懒加载，直接隐藏全局加载
+                    setTimeout(() => {
+                        this.elements.globalLoading.classList.add('hidden');
+                    }, 500);
+                }
             },
             
-            // 创建单个视频卡片 - 使用9:16比例
             createVideoCard(video) {
                 const card = document.createElement('div');
-                card.className = `bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-lg ${this.classes.videoCard} transform transition-all ${this.classes.hidden} ${this.classes.cardEnter}`;
+                card.className = `bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-lg video-card transform transition-all hidden card-enter`;
                 card.dataset.videoId = video.id;
                 
                 // 视频封面容器
                 const coverContainer = document.createElement('div');
                 coverContainer.className = 'relative overflow-hidden rounded-lg';
                 
-                // 视频封面图（使用9:16比例）
+                // 视频封面图
                 const coverImg = document.createElement('img');
-                coverImg.className = 'w-full aspect-9x16 object-cover rounded-lg video-cover';
+                coverImg.className = 'w-full aspect-9x16 object-cover rounded-lg video-cover opacity-0 transition-opacity duration-500';
                 if (this.state.isMobile) {
                     coverImg.dataset.src = video.cover; // 移动端懒加载
-                } else {
-                    coverImg.src = video.cover;
                 }
                 coverImg.alt = video.title;
                 
-                // 加载指示器
+                // 加载指示器 - 添加旋转动画
                 const coverLoading = document.createElement('div');
-                coverLoading.className = this.classes.coverLoading;
-                coverLoading.innerHTML = '';
+                coverLoading.className = 'cover-loading hidden';
+                coverLoading.innerHTML = '<i class="fa fa-circle-o-notch text-gray-400 dark:text-gray-600 text-xl animate-spin"></i>';
                 
                 // 错误提示
                 const coverError = document.createElement('div');
-                coverError.className = this.classes.coverError;
+                coverError.className = 'cover-error';
                 coverError.innerHTML = `
                     <i class="fa fa-image text-2xl text-gray-500 mb-2"></i>
                     <p class="text-sm text-gray-600 dark:text-gray-400">封面加载失败</p>
@@ -664,7 +743,7 @@
                 // 播放按钮覆盖层
                 const playOverlay = document.createElement('div');
                 playOverlay.className = 'play-overlay absolute inset-0 bg-black/40 flex items-center justify-center';
-                playOverlay.innerHTML = '<i class="fa fa-play-circle text-white text-2xl transition-transform duration-300 hover:scale-110"></i>';
+                playOverlay.innerHTML = '<i class="fa fa-play-circle text-white text-3xl transition-transform duration-300 hover:scale-110"></i>';
                 
                 // 标题
                 const title = document.createElement('h3');
@@ -672,162 +751,98 @@
                 title.textContent = video.title;
                 
                 // 组装卡片
-                coverContainer.appendChild(coverImg);
-                coverContainer.appendChild(coverLoading);
-                coverContainer.appendChild(coverError);
-                coverContainer.appendChild(playOverlay);
-                card.appendChild(coverContainer);
-                card.appendChild(title);
+                coverContainer.append(coverImg, coverLoading, coverError, playOverlay);
+                card.append(coverContainer, title);
                 
                 return card;
             },
             
-            // 创建图片信息对象
             createImageInfo(card, video) {
                 return {
                     card,
                     video,
                     img: card.querySelector('img'),
-                    loading: card.querySelector(`.${this.classes.coverLoading}`),
-                    error: card.querySelector(`.${this.classes.coverError}`),
-                    loadOrder: 0,
-                    loadTime: 0
+                    loading: card.querySelector('.cover-loading'),
+                    error: card.querySelector('.cover-error'),
+                    // 图片加载成功处理
+                    onLoad: function() {
+                        this.loading.classList.add('hidden');
+                        this.error.classList.add('hidden');
+                        this.img.classList.remove('opacity-0');
+                        this.card.classList.remove('hidden');
+                        setTimeout(() => this.card.classList.add('card-enter-active'), 50);
+                    },
+                    // 图片加载失败处理
+                    onError: function() {
+                        this.loading.classList.add('hidden');
+                        this.error.classList.remove('hidden');
+                        this.img.src = VideoPlayerApp.config.errorCoverUrl;
+                        this.card.classList.remove('hidden');
+                        setTimeout(() => this.card.classList.add('card-enter-active'), 50);
+                    },
                 };
             },
             
-            // 开始随机加载封面图片
-            startRandomLoading() {
-                if (this.state.currentLoadIndex >= this.state.allImages.length) {
-                    if (this.state.failedImages.length > 0) {
-                        this.elements.loadingText.textContent = `加载完成，${this.state.failedImages.length}张封面加载失败`;
-                    } else {
-                        this.elements.loadingText.textContent = "全部加载完成";
-                    }
-                    return;
-                }
-                
-                // 随机选择一个未加载的图片
-                const unloadedImages = this.state.allImages.filter((_, index) => index >= this.state.currentLoadIndex);
-                const randomIndex = Math.floor(Math.random() * unloadedImages.length);
-                const selectedImage = unloadedImages[randomIndex];
-                
-                // 将选中的图片移到当前加载位置
-                const currentIndex = this.state.allImages.indexOf(selectedImage);
-                [this.state.allImages[this.state.currentLoadIndex], this.state.allImages[currentIndex]] = 
-                [this.state.allImages[currentIndex], this.state.allImages[this.state.currentLoadIndex]];
-                
-                const imageInfo = this.state.allImages[this.state.currentLoadIndex];
-                this.state.currentLoadIndex++;
-                
-                // 记录开始加载时间
-                imageInfo.loadStartTime = Date.now();
-                
-                // 监听图片加载事件
-                imageInfo.img.onload = () => this.handleImageLoad(imageInfo);
-                imageInfo.img.onerror = () => this.handleImageError(imageInfo);
-                
-                // 非移动端直接加载
-                if (!this.state.isMobile) {
-                    imageInfo.img.src = imageInfo.video.cover;
-                }
-            },
+
             
-            // 处理图片加载成功
-            handleImageLoad(imageInfo) {
-                imageInfo.loadTime = Date.now() - imageInfo.loadStartTime;
-                
-                imageInfo.loading.classList.add(this.classes.hidden);
-                imageInfo.error.classList.add(this.classes.hidden);
-                imageInfo.card.classList.remove(this.classes.hidden);
-                
-                // 添加到成功列表
-                this.state.sortedSuccessImages.push(imageInfo);
-                
-                // 按加载速度排序
-                this.reorderCardsByLoadSpeed();
-                
-                this.updateLoadingProgress(true);
-            },
-            
-            // 处理图片加载失败
-            handleImageError(imageInfo) {
-                imageInfo.loading.classList.add(this.classes.hidden);
-                imageInfo.error.classList.remove(this.classes.hidden);
-                imageInfo.error.classList.add(this.classes.fadeIn);
-                imageInfo.img.src = this.config.errorCoverUrl;
-                imageInfo.card.classList.remove(this.classes.hidden);
-                
-                this.state.failedImages.push(imageInfo);
-                
-                // 重新排序
-                this.reorderCardsByLoadSpeed();
-                
-                this.updateLoadingProgress(true);
-            },
-            
-            // 按加载速度重新排列卡片
-            reorderCardsByLoadSpeed() {
-                this.state.sortedSuccessImages.sort((a, b) => a.loadTime - b.loadTime);
-                
-                const allProcessed = [...this.state.sortedSuccessImages, ...this.state.failedImages];
-                const unprocessedImages = this.state.allImages.filter(
-                    img => !allProcessed.includes(img)
+            startBatchLoading() {
+                const batchImages = this.state.allImages.slice(
+                    this.state.currentLoadIndex, 
+                    this.state.currentLoadIndex + this.config.batchSize
                 );
                 
-                // 重新排列DOM中的卡片
-                const fragment = document.createDocumentFragment();
-                allProcessed.forEach(imageInfo => {
-                    fragment.appendChild(imageInfo.card);
-                });
-                unprocessedImages.forEach(imageInfo => {
-                    fragment.appendChild(imageInfo.card);
+                batchImages.forEach(imgInfo => {
+                    if (!imgInfo.img.src && imgInfo.video.cover) {
+                        imgInfo.loading.classList.remove('hidden');
+                        imgInfo.img.onload = () => this.handleImageLoad(imgInfo);
+                        imgInfo.img.onerror = () => this.handleImageError(imgInfo);
+                        imgInfo.img.src = imgInfo.video.cover;
+                    }
                 });
                 
-                this.elements.videoGrid.innerHTML = '';
-                this.elements.videoGrid.appendChild(fragment);
-            },
-            
-            // 设置滚动动画
-            setupScrollAnimation() {
-                if ('IntersectionObserver' in window) {
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.classList.add(this.classes.cardEnterActive);
-                                observer.unobserve(entry.target);
-                            }
-                        });
-                    }, { threshold: 0.1 });
-
-                    document.querySelectorAll(`.${this.classes.videoCard}`).forEach(card => {
-                        observer.observe(card);
-                    });
+                this.state.currentLoadIndex += this.config.batchSize;
+                
+                if (this.state.currentLoadIndex < this.state.allImages.length) {
+                    const randomDelay = Math.floor(Math.random() * this.config.variableLoadDelay);
+                    const totalDelay = this.config.baseLoadDelay + randomDelay;
+                    
+                    this.state.loadIntervalId = setTimeout(
+                        () => this.startBatchLoading(), 
+                        totalDelay
+                    );
                 }
             },
             
-            // 更新加载进度
-            updateLoadingProgress(shouldContinueLoading = false) {
+            handleImageLoad(imgInfo) {
+                imgInfo.onLoad.call(imgInfo);
+                this.updateLoadingProgress(true);
+            },
+            
+            handleImageError(imgInfo) {
+                imgInfo.onError.call(imgInfo);
+                this.state.failedImages.push(imgInfo);
+                this.updateLoadingProgress(false);
+            },
+            
+            updateLoadingProgress(success) {
                 this.state.totalProcessed++;
-                const progress = (this.state.totalProcessed / this.state.allImages.length) * 100;
                 
                 this.elements.loadingProgress.textContent = this.state.totalProcessed;
+                const progress = (this.state.totalProcessed / this.state.allImages.length) * 100;
                 this.elements.loadingBar.style.width = `${progress}%`;
                 
-                if (shouldContinueLoading) {
-                    setTimeout(() => this.startRandomLoading(), this.config.loadDelay);
+                if (this.state.totalProcessed === this.state.allImages.length) {
+                    setTimeout(() => {
+                        this.elements.globalLoading.classList.add('hidden');
+                    }, 500);
                 }
             },
             
-            // 重新加载所有封面
             reloadAllCovers() {
-                this.elements.reloadCovers.classList.add('animate-spin');
-                setTimeout(() => {
-                    this.elements.reloadCovers.classList.remove('animate-spin');
-                    this.createVideoCards();
-                }, 500);
+                this.addTouchFeedback(this.elements.reloadCovers);
+                this.createVideoCards();
             },
             
-            // 播放视频
             playVideo(videoId) {
                 const video = this.state.videos.find(v => v.id === videoId);
                 if (!video) return;
@@ -836,153 +851,120 @@
                 this.elements.videoTitle.textContent = video.title;
                 this.elements.videoPlayer.src = video.url;
                 
-                // 显示播放器并添加淡入动画
-                this.elements.videoContainer.classList.remove(this.classes.hidden);
-                this.elements.videoContainer.classList.add(this.classes.fadeIn);
-                
-                // 先滚动到顶部，再播放视频
+                // 显示播放器
+                this.elements.videoContainer.classList.remove('hidden');
                 this.scrollToTop();
                 
-                // 延迟播放，等待滚动完成
-                setTimeout(() => {
-                    // 移动端特殊处理
-                    if (this.state.isMobile) {
-                        this.elements.videoContainer.classList.add('mobile-player');
-                        this.elements.videoTitle.classList.add('mobile-video-title');
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        this.elements.videoContainer.classList.remove('mobile-player');
-                        this.elements.videoTitle.classList.remove('mobile-video-title');
+                // 适配移动设备全屏样式
+                if (this.state.isMobile) {
+                    this.elements.videoContainer.classList.add('mobile-player');
+                    this.elements.videoTitle.classList.add('text-base');
+                } else {
+                    this.elements.videoContainer.classList.remove('mobile-player');
+                    this.elements.videoTitle.classList.remove('text-base');
+                }
+                
+                // 设置视频尺寸为9:16
+                this.elements.videoPlayer.style.height = `${this.elements.videoPlayer.offsetWidth * 16 / 9}px`;
+                
+                // 尝试播放视频
+                this.elements.videoPlayer.load();
+                this.showLoadingIndicator();
+                
+                // 设置加载超时
+                this.state.loadTimeout = setTimeout(() => {
+                    if (this.elements.videoPlayer.paused) {
+                        this.handleVideoError({ type: 'timeout' });
                     }
-                    
-                    this.elements.videoError.classList.add(this.classes.hidden);
-                    this.showLoadingIndicator();
-                    
-                    // 尝试播放视频
-                    this.elements.videoPlayer.load();
-                    const playPromise = this.elements.videoPlayer.play();
-                    
-                    // 移动端自动进入全屏
-                    if (this.state.isMobile && playPromise) {
-                        playPromise.then(() => {
-                            if (this.elements.videoPlayer.requestFullscreen) {
-                                this.elements.videoPlayer.requestFullscreen();
-                            } else if (this.elements.videoPlayer.webkitRequestFullscreen) {
-                                this.elements.videoPlayer.webkitRequestFullscreen();
-                            }
-                        }).catch(err => console.error('自动播放失败:', err));
-                    }
-                    
-                    // 设置加载超时
-                    this.state.loadTimeout = setTimeout(() => {
-                        this.handleVideoTimeout();
-                    }, this.config.videoLoadTimeout);
-                }, this.config.scrollDuration);
+                }, this.config.videoLoadTimeout);
+                
+                // 尝试播放
+                this.elements.videoPlayer.play().catch(err => {
+                    this.handleVideoError(err);
+                });
             },
             
-            // 关闭视频播放器
             closeVideoPlayer() {
-                if (this.state.currentVideo) {
-                    this.elements.videoContainer.classList.add(this.classes.fadeOut);
-                    
-                    setTimeout(() => {
-                        this.elements.videoContainer.classList.add(this.classes.hidden);
-                        this.elements.videoContainer.classList.remove(this.classes.fadeIn, this.classes.fadeOut);
-                        this.elements.videoPlayer.pause();
-                        this.elements.videoPlayer.src = '';
-                        this.state.currentVideo = null;
-                        
-                        // 恢复页面滚动
-                        if (this.state.isMobile) {
-                            document.body.style.overflow = '';
-                        }
-                    }, 300);
-                    
-                    this.hideLoadingIndicator();
-                }
+                this.elements.videoPlayer.pause();
+                  this.elements.videoPlayer.src = '';
+                  this.elements.videoPlayer.removeAttribute('src');
+                  this.elements.videoPlayer.load();
+                  this.elements.videoContainer.classList.add('hidden');
+                  this.state.currentVideo = null;
+                  this.elements.videoError.classList.add('hidden');
+                  this.state.isMouseOverVideo = false;
             },
             
-            // 处理视频超时
-            handleVideoTimeout() {
-                if (this.state.currentVideo && this.elements.loadingIndicator && 
-                    !this.elements.loadingIndicator.classList.contains(this.classes.hidden)) {
-                    this.handleVideoError({ message: '视频加载超时，请检查网络连接' });
-                }
-            },
-            
-            // 处理视频播放错误
             handleVideoError(error) {
                 this.hideLoadingIndicator();
-                this.elements.videoError.classList.remove(this.classes.hidden);
-                setTimeout(() => {
-                    this.elements.videoError.style.opacity = '1';
-                }, 10);
+                this.elements.videoError.classList.remove('hidden');
+                this.elements.videoError.style.opacity = 1;
                 
-                let errorMessage = "无法加载视频，请稍后重试";
-                if (error.code === 1) errorMessage = "用户取消了视频加载";
-                else if (error.code === 2) errorMessage = "视频格式不支持";
-                else if (error.code === 3) errorMessage = "视频加载过程中发生错误";
-                else if (error.code === 4) errorMessage = "视频地址无效或已过期";
-                else if (error.message) errorMessage = error.message;
-                
-                this.elements.videoErrorMessage.textContent = errorMessage;
+                let message = '无法加载视频，请稍后重试';
+                if (error.type === 'timeout') {
+                    message = '视频加载超时，请检查网络连接';
+                } else if (error.code === 1) {
+                    message = '用户中止了视频加载';
+                } else if (error.code === 2) {
+                    message = '网络错误，请检查您的网络连接';
+                } else if (error.code === 3) {
+                    message = '解码错误，视频文件可能已损坏';
+                } else if (error.code === 4) {
+                    message = '视频格式不受支持';
+                }
+                this.elements.videoErrorMessage.textContent = message;
             },
             
-            // 重试视频播放
             retryVideoPlayback() {
                 if (!this.state.currentVideo) return;
                 
-                this.elements.videoError.style.opacity = '0';
+                this.elements.videoError.style.opacity = 0;
                 setTimeout(() => {
-                    this.elements.videoError.classList.add(this.classes.hidden);
+                    this.elements.videoError.classList.add('hidden');
+                    this.elements.videoPlayer.src = this.state.currentVideo.url;
+                    this.elements.videoPlayer.load();
+                    this.showLoadingIndicator();
+                    
+                    this.elements.videoPlayer.play().catch(err => {
+                        this.handleVideoError(err);
+                    });
                 }, 300);
-                
-                this.showLoadingIndicator();
-                this.elements.videoPlayer.src = this.state.currentVideo.url;
-                this.elements.videoPlayer.load();
-                
-                const playPromise = this.elements.videoPlayer.play();
-                if (playPromise) {
-                    playPromise.catch(err => console.error('重试播放失败:', err));
-                }
-                
-                this.state.loadTimeout = setTimeout(() => {
-                    this.handleVideoTimeout();
-                }, this.config.videoLoadTimeout);
             },
             
-            // 初始化主题
             initializeTheme() {
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                if (localStorage.theme === 'dark' || 
+                    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                     document.documentElement.classList.add('dark');
-                    this.elements.themeIcon.classList.remove('fa-moon-o');
-                    this.elements.themeIcon.classList.add('fa-sun-o');
+                    this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
                 } else {
                     document.documentElement.classList.remove('dark');
-                    this.elements.themeIcon.classList.remove('fa-sun-o');
-                    this.elements.themeIcon.classList.add('fa-moon-o');
+                    this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
                 }
             },
             
-            // 切换主题
             toggleTheme() {
-                const isDark = document.documentElement.classList.toggle('dark');
-                
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                
-                if (isDark) {
-                    this.elements.themeIcon.classList.remove('fa-moon-o');
-                    this.elements.themeIcon.classList.add('fa-sun-o');
-                } else {
-                    this.elements.themeIcon.classList.remove('fa-sun-o');
-                    this.elements.themeIcon.classList.add('fa-moon-o');
-                }
-            }
+                 try {
+                     if (document.documentElement.classList.contains('dark')) {
+                         document.documentElement.classList.remove('dark');
+                         localStorage.theme = 'light';
+                         this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
+                     } else {
+                         document.documentElement.classList.add('dark');
+                         localStorage.theme = 'dark';
+                         this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
+                     }
+                 } catch (e) {
+                     if (document.documentElement.classList.contains('dark')) {
+                         document.documentElement.classList.remove('dark');
+                         this.elements.themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
+                     } else {
+                         document.documentElement.classList.add('dark');
+                         this.elements.themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
+                     }
+                 }
+              }
         };
-        
+
         // 初始化应用
         document.addEventListener('DOMContentLoaded', () => {
             VideoPlayerApp.init();
@@ -990,3 +972,4 @@
     </script>
 </body>
 </html>
+    
