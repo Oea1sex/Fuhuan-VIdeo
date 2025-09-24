@@ -133,6 +133,34 @@
             .enter-screen {
                 @apply animate-slideIn;
             }
+            
+            /* 增强的动画效果 */
+            .fadeIn {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            
+            .scaleIn {
+                animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            
+            .slideUp {
+                animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes scaleIn {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            
+            @keyframes slideUp {
+                from { transform: translateY(30px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
         }
     </style>
 </head>
@@ -202,10 +230,10 @@
             elements: {},
             
             config: {
-                errorCoverUrl: "https://d.feiliupan.com/t/127891246667534336/ERROR.jpeg",
-                baseLoadDelay: 150,
-                variableLoadDelay: 100,
-                batchSize: 2,
+                errorCoverUrl: "error.jpeg", // 使用本地error.jpeg文件
+                baseLoadDelay: 100, // 减少加载延迟以加快排序效果
+                variableLoadDelay: 50,
+                batchSize: 4, // 增加批量加载数量以提高效率
                 videoLoadTimeout: 15000,
                 scrollDuration: 500,
                 touchAnimationDuration: 200,
@@ -213,23 +241,24 @@
             },
             
             state: {
+                // 使用本地文件路径
                 videos: [
-                    { id: 1, title: "空悲切", url: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/konbeiqie.jpg" },
-                    { id: 2, title: "旧时的福家拳", url: "https://d.feiliupan.com/t/127891246667534336/Fujiaquan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fujiaquan.jpg" },
-                    { id: 3, title: "神经班", url: "https://d.feiliupan.com/t/127891246667534336/sjban.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/sjban.jpg" },
-                    { id: 4, title: "妖娆", url: "https://d.feiliupan.com/t/127891246667534336/yaorao.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/yaorao.jpg" },
-                    { id: 5, title: "缘分本就稀薄寡淡", url: "https://d.feiliupan.com/t/127891246667534336/yuanfen.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/yuanfen.jpg" },
-                    { id: 6, title: "全场最佳", url: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/quanchangzuijia.jpg" },
-                    { id: 7, title: "期待本就是很无力的东西", url: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/qiedaiwuli.jpg" },
-                    { id: 8, title: "他还在", url: "https://d.feiliupan.com/t/127891246667534336/tahaizai.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tahaizai.jpg" },
-                    { id: 9, title: "最特别的老师", url: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tebiedeDog.jpg" },
-                    { id: 10, title: "他还是来了", url: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/tahaisilaile.jpg" },
-                    { id: 11, title: "肚子越大的人跑步越快", url: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/dudapaokuai.jpg" },
-                    { id: 12, title: "权威", url: "https://d.feiliupan.com/t/127891246667534336/quanwei.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/quanwei.jpg" },
-                    { id: 13, title: "福拳", url: "https://d.feiliupan.com/t/127891246667534336/fuquan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fuquan.jpg" },
-                    { id: 14, title: "我们都太年轻了", url: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/womendoutainianqinle.jpg" },
-                    { id: 15, title: "福哥对不起", url: "https://d.feiliupan.com/t/127891246667534336/fuge520.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/fuge520.jpg" },
-                    { id: 16, title: "戒了烟我不习惯", url: "https://d.feiliupan.com/t/127891246667534336/jieyan.mp4", cover: "https://d.feiliupan.com/t/127891246667534336/jieyan.jpg" }
+                    { id: 1, title: "空悲切", url: "MP4/konbeiqie.mp4", cover: "JPG/konbeiqie.jpg" },
+                    { id: 2, title: "旧时的福家拳", url: "MP4/fujiaquan.mp4", cover: "JPG/fujiaquan.jpg" },
+                    { id: 3, title: "福拳", url: "MP4/fuquan.mp4", cover: "JPG/fuquan.jpg" },
+                    { id: 4, title: "戒了烟我不习惯", url: "MP4/jieyan.mp4", cover: "JPG/jieyan.jpg" },
+                    { id: 5, title: "空悲切", url: "MP4/konbeiqie.mp4", cover: "JPG/konbeiqie.jpg" },
+                    { id: 6, title: "期待本就是很无力的东西", url: "MP4/qiedaiwuli.mp4", cover: "JPG/qiedaiwuli.jpg" },
+                    { id: 7, title: "全场最佳", url: "MP4/quanchangzuijia.mp4", cover: "JPG/quanchangzuijia.jpg" },
+                    { id: 8, title: "权威", url: "MP4/quanwei.mp4", cover: "JPG/quanwei.jpg" },
+                    { id: 9, title: "他还是来了", url: "MP4/tahaisilaile.mp4", cover: "JPG/tahaisilaile.jpg" },
+                    { id: 10, title: "他还在", url: "MP4/tahaizai.mp4", cover: "JPG/tahaizai.jpg" },
+                    { id: 11, title: "最特别的老师", url: "MP4/tebiedeDog.mp4", cover: "JPG/tebiedeDog.jpg" },
+                    { id: 12, title: "我们都太年轻了", url: "MP4/womendoutainianqinle.mp4", cover: "JPG/womendoutainianqinle.jpg" },
+                    { id: 13, title: "妖娆", url: "MP4/yaorao.mp4", cover: "JPG/yaorao.jpg" },
+                    { id: 14, title: "缘分", url: "MP4/yuanfen.mp4", cover: "JPG/yuanfen.jpg" },
+                    { id: 15, title: "肚子越大的人跑步越快", url: "MP4/dudapaokuai.mp4", cover: "JPG/dudapaokuai.jpg" },
+                    { id: 16, title: "福哥对不起", url: "MP4/fuge520.mp4", cover: "JPG/yuanfen.jpg" }
                 ],
                 currentVideo: null,
                 allImages: [],
@@ -242,7 +271,9 @@
                 loadIntervalId: null,
                 lastScrollTop: 0,
                 scrollDirection: '',
-                observer: null
+                observer: null,
+                loadedVideos: [], // 存储已加载完成的视频，按加载顺序排序
+                loadingVideos: []  // 存储正在加载的视频
             },
             
             init() {
@@ -583,7 +614,7 @@
             
             determineLayout() {
                 const windowWidth = window.innerWidth;
-                if (this.state.isMobile) return { columns: 1, name: "1x" };
+                if (this.state.isMobile) return { columns: 1, name: "1x" }; // 手机端始终1列
                 if (windowWidth >= 1200) return { columns: 4, name: "4x" };
                 if (windowWidth >= 768) return { columns: 3, name: "3x" };
                 return { columns: 2, name: "2x" };
@@ -598,7 +629,7 @@
                 
                 // 移动端使用1列网格布局（1x16）
                 if (this.state.isMobile) {
-                    grid.classList.add('mobile-grid');
+                    grid.classList.add('grid-1x', 'mobile-grid');
                     this.adjustMobileCardStyles();
                     return;
                 }
@@ -611,7 +642,7 @@
             adjustMobileCardStyles() {
                 document.querySelectorAll('.video-card').forEach(card => {
                     card.classList.remove('p-2', 'p-3', 'p-4');
-                    card.classList.add('mobile-card');
+                    card.classList.add('mobile-card', 'scaleIn');
                     
                     const title = card.querySelector('h3');
                     if (title) {
@@ -619,6 +650,8 @@
                         title.classList.add('text-base', 'font-semibold');
                     }
                 });
+                
+                // 函数已正确结束
             },
             
             adjustCardStyles(columns) {
@@ -673,26 +706,22 @@
                 this.state.failedImages = [];
                 this.state.currentLoadIndex = 0;
                 this.state.totalProcessed = 0;
+                this.state.loadedVideos = [];
+                this.state.loadingVideos = [];
                 
                 // 清空网格
                 this.elements.videoGrid.innerHTML = '';
-                
-                const fragment = document.createDocumentFragment();
                 
                 // 创建所有视频卡片
                 this.state.videos.forEach(video => {
                     const card = this.createVideoCard(video);
                     this.state.allImages.push(this.createImageInfo(card, video));
-                    fragment.appendChild(card);
+                    // 不立即添加到DOM，而是在加载完成后按顺序添加
                 });
-                
-                this.elements.videoGrid.appendChild(fragment);
                 
                 // 为移动设备设置滚动动画观察器
                 if (this.state.isMobile && this.state.observer) {
-                    document.querySelectorAll('.video-card').forEach(card => {
-                        this.state.observer.observe(card);
-                    });
+                    // 暂时不观察，等卡片添加到DOM后再观察
                 }
                 
                 // 更新加载状态显示
@@ -700,14 +729,7 @@
                 this.elements.globalLoading.classList.remove('hidden');
                 
                 // 开始分批、间隔加载封面
-                if (!this.state.isMobile) {
-                    this.startBatchLoading();
-                } else {
-                    // 移动设备使用懒加载，直接隐藏全局加载
-                    setTimeout(() => {
-                        this.elements.globalLoading.classList.add('hidden');
-                    }, 500);
-                }
+                this.startBatchLoading();
             },
             
             createVideoCard(video) {
@@ -793,10 +815,18 @@
                 
                 batchImages.forEach(imgInfo => {
                     if (!imgInfo.img.src && imgInfo.video.cover) {
+                        // 记录正在加载的视频
+                        this.state.loadingVideos.push(imgInfo);
+                        
                         imgInfo.loading.classList.remove('hidden');
                         imgInfo.img.onload = () => this.handleImageLoad(imgInfo);
                         imgInfo.img.onerror = () => this.handleImageError(imgInfo);
                         imgInfo.img.src = imgInfo.video.cover;
+                        
+                        // 确保卡片已添加到DOM
+                        if (!imgInfo.card.parentNode) {
+                            this.elements.videoGrid.appendChild(imgInfo.card);
+                        }
                     }
                 });
                 
@@ -814,11 +844,58 @@
             },
             
             handleImageLoad(imgInfo) {
+                // 按加载完成顺序排序
+                this.state.loadedVideos.push(imgInfo);
+                this.updateVideoGridOrder();
+                
                 imgInfo.onLoad.call(imgInfo);
                 this.updateLoadingProgress(true);
             },
             
+            updateVideoGridOrder() {
+                // 清空网格但保留卡片引用
+                const fragment = document.createDocumentFragment();
+                
+                // 先添加已加载完成的视频
+                this.state.loadedVideos.forEach(imgInfo => {
+                    fragment.appendChild(imgInfo.card);
+                });
+                
+                // 再添加正在加载的视频（保持原来的顺序）
+                this.state.loadingVideos.forEach(imgInfo => {
+                    if (!fragment.contains(imgInfo.card)) {
+                        fragment.appendChild(imgInfo.card);
+                    }
+                });
+                
+                // 添加未开始加载的视频
+                const allLoaded = [...this.state.loadedVideos, ...this.state.loadingVideos];
+                this.state.allImages.forEach(imgInfo => {
+                    if (!allLoaded.includes(imgInfo)) {
+                        if (!imgInfo.card.parentNode) {
+                            // 确保卡片已创建但未添加到DOM
+                            fragment.appendChild(imgInfo.card);
+                        }
+                    }
+                });
+                
+                // 替换网格内容
+                this.elements.videoGrid.innerHTML = '';
+                this.elements.videoGrid.appendChild(fragment);
+                
+                // 为移动设备设置滚动动画观察器
+                if (this.state.isMobile && this.state.observer) {
+                    document.querySelectorAll('.video-card').forEach(card => {
+                        this.state.observer.observe(card);
+                    });
+                }
+            },
+            
             handleImageError(imgInfo) {
+                // 加载失败的视频也按顺序排列
+                this.state.loadedVideos.push(imgInfo);
+                this.updateVideoGridOrder();
+                
                 imgInfo.onError.call(imgInfo);
                 this.state.failedImages.push(imgInfo);
                 this.updateLoadingProgress(false);
@@ -853,6 +930,8 @@
                 
                 // 显示播放器
                 this.elements.videoContainer.classList.remove('hidden');
+                // 添加更丰富的动画效果
+                this.elements.videoContainer.classList.add('fadeIn', 'scaleIn');
                 this.scrollToTop();
                 
                 // 适配移动设备全屏样式
