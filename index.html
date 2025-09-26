@@ -498,17 +498,20 @@
                 return -c / 2 * (t * (t - 2) - 1) + b;
             },
             
-            // 图片懒加载实现
+            // 图片懒加载实现 - 现在是备用方案，主要加载逻辑在startRandomLoading
             setupLazyLoading() {
                 if ('IntersectionObserver' in window && this.state.isMobile) {
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
                             if (entry.isIntersecting) {
                                 const img = entry.target;
-                                const src = img.dataset.src;
-                                if (src) {
-                                    img.src = src;
-                                    img.removeAttribute('data-src');
+                                // 只有在图片还没有设置src或者加载失败时才处理
+                                if (!img.src || img.src.includes(this.config.errorCoverUrl)) {
+                                    const src = img.dataset.src;
+                                    if (src) {
+                                        img.src = src;
+                                        img.removeAttribute('data-src');
+                                    }
                                 }
                                 observer.unobserve(img);
                             }
@@ -705,14 +708,14 @@
             startRandomLoading() {
                 if (this.state.currentLoadIndex >= this.state.allImages.length) {
                     // 所有图片都已尝试加载
-                if (this.state.failedImages.length > 0) {
-                    // 确保失败计数不超过实际视频数量
-                    const displayFailedCount = Math.min(this.state.failedImages.length, this.state.videos.length);
-                    this.elements.loadingText.textContent = `加载完成，${displayFailedCount}张封面加载失败`;
-                    // 隐藏进度计数部分
-                    this.elements.loadingProgress.style.display = 'none';
-                    this.elements.totalItems.style.display = 'none';
-                } else {
+                    if (this.state.failedImages.length > 0) {
+                        // 确保失败计数不超过实际视频数量
+                        const displayFailedCount = Math.min(this.state.failedImages.length, this.state.videos.length);
+                        this.elements.loadingText.textContent = `加载完成，${displayFailedCount}张封面加载失败`;
+                        // 隐藏进度计数部分
+                        this.elements.loadingProgress.style.display = 'none';
+                        this.elements.totalItems.style.display = 'none';
+                    } else {
                         this.elements.loadingText.textContent = "全部加载完成";
                         // 隐藏进度计数部分
                         this.elements.loadingProgress.style.display = 'none';
@@ -741,9 +744,13 @@
                 imageInfo.img.onload = () => this.handleImageLoad(imageInfo);
                 imageInfo.img.onerror = () => this.handleImageError(imageInfo);
                 
-                // 如果是移动端懒加载，这里不需要手动设置src，已通过IntersectionObserver处理
-                if (!this.state.isMobile) {
-                    imageInfo.img.src = imageInfo.video.cover;
+                // 无论是否是移动端，都直接设置src进行加载
+                // 这样可以确保加载过程不会卡在0/16
+                imageInfo.img.src = imageInfo.video.cover;
+                
+                // 对于移动端，移除data-src属性，避免懒加载重复处理
+                if (this.state.isMobile && imageInfo.img.dataset.src) {
+                    delete imageInfo.img.dataset.src;
                 }
             },
             
