@@ -897,16 +897,8 @@
                     this.elements.videoPlayer.load();
                     const playPromise = this.elements.videoPlayer.play();
                     
-                    // 移动端自动进入全屏
-                    if (this.state.isMobile && playPromise) {
-                        playPromise.then(() => {
-                            if (this.elements.videoPlayer.requestFullscreen) {
-                                this.elements.videoPlayer.requestFullscreen();
-                            } else if (this.elements.videoPlayer.webkitRequestFullscreen) {
-                                this.elements.videoPlayer.webkitRequestFullscreen();
-                            }
-                        }).catch(err => console.error('自动播放失败:', err));
-                    }
+                    // 移动端不再自动进入全屏，保持普通模式播放
+                    playPromise.catch(err => console.error('自动播放失败:', err));
                     
                     // 设置加载超时
                     this.state.loadTimeout = setTimeout(() => {
